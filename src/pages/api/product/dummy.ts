@@ -6,5 +6,5 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse>
 ) {
-  res.status(200).json({ msg: "Dummy successful", success: true });
+  res.status(200).json({ msg: "Dummy successful!", success: true });
 }
