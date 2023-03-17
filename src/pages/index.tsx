@@ -16,7 +16,6 @@ import {
 import DisplayGrid from "@components/product/DisplayGrid";
 import Papa from "papaparse";
 import { FormatCSV } from "src/util/formatCSV";
-import { format } from "path";
 
 interface ReplaceProductsMutation {}
 interface ReplaceProductsMutationVariables {
@@ -68,7 +67,7 @@ const Home: NextPage = () => {
   const handleFileChange = (e: React.FormEvent<HTMLInputElement>) => {
     Papa.parse(e.currentTarget?.files?.[0]!, {
       dynamicTyping: true,
-      complete: (results) => {
+      complete: (results: any) => {
         const formatedJSON = FormatCSV(results.data!)!;
         replaceProducts({
           variables: { data: formatedJSON },
