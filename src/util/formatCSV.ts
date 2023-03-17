@@ -10,7 +10,7 @@ const OBJECT_FIELDS = [
   "specs",
 ];
 
-export const FormatCSV = (array: [any[]] | unknown[]) => {
+export const FormatCSV = (array: [any[]]) => {
   if (Array.isArray(array) && array.every((item) => Array.isArray(item))) {
     const headers: any[] = array[0];
     const result = array
