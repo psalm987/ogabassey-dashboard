@@ -2,7 +2,7 @@ import type { NextPage } from "next";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import H1 from "@components/typography/H1";
-import { Avatar, Box, Grid, Typography } from "@mui/material";
+import { Avatar, Box, GlobalStyles, Grid, Typography } from "@mui/material";
 import Text from "@components/typography/Text";
 import Image from "@components/media/Image";
 import AppBar from "@components/surface/AppBar";
@@ -16,6 +16,8 @@ import {
 import DisplayGrid from "@components/product/DisplayGrid";
 import Papa from "papaparse";
 import { FormatCSV } from "src/util/formatCSV";
+import Script from "next/script";
+import { orange } from "@mui/material/colors";
 
 interface ReplaceProductsMutation {}
 interface ReplaceProductsMutationVariables {
@@ -139,6 +141,26 @@ const Home: NextPage = () => {
           }
         />
       </Container>
+      <GlobalStyles
+        styles={{
+          "df-messenger": {
+            "--df-messenger-bot-message": orange[100],
+            "--df-messenger-button-titlebar-color": orange[900],
+          },
+        }}
+      />
+      <Script
+        id="dialogflow"
+        src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"
+      ></Script>
+      {/* @ts-ignore */}
+      <df-messenger
+        intent="WELCOME"
+        chat-title="Ogabassey"
+        agent-id="4ac40644-8cb0-49c7-b7ee-edb35952eb50"
+        language-code="en"
+        wait-open="true"
+      />
     </>
   );
 };

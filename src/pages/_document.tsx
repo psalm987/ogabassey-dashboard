@@ -29,6 +29,8 @@ class MyDocument extends Document {
             rel="stylesheet"
             href="https://fonts.googleapis.com/css?family=Raleway:300,400,500,600,700&family=Poppins:300,400,500,600,700&display=swap"
           />
+
+          <link rel="shortcut icon" href="/ico_white.png" />
         </Head>
         <body>
           <Main />
