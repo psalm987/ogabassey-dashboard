@@ -21,14 +21,14 @@ export default async function handler(
             .status(400)
             .json({ msg: "Bad input parameters", success: false });
         product = await updateProduct({ ...input, id });
-        return res.status(400).json({
+        return res.status(200).json({
           data: product,
           success: true,
         });
       case "GET":
         // Retrieve a product using product id
         product = await getProductById(id!);
-        return res.status(400).json({ data: product, success: true });
+        return res.status(200).json({ data: product, success: true });
       default:
         return res.status(405).json({ msg: "Invalid method", success: false });
     }
