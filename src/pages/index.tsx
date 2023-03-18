@@ -146,6 +146,7 @@ const Home: NextPage = () => {
           "df-messenger": {
             "--df-messenger-bot-message": orange[100],
             "--df-messenger-button-titlebar-color": blue.A700,
+            "--df-messenger-send-icon": blue.A700,
           },
         }}
       />
