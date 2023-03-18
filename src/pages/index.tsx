@@ -17,7 +17,7 @@ import DisplayGrid from "@components/product/DisplayGrid";
 import Papa from "papaparse";
 import { FormatCSV } from "src/util/formatCSV";
 import Script from "next/script";
-import { orange } from "@mui/material/colors";
+import { blue, orange } from "@mui/material/colors";
 
 interface ReplaceProductsMutation {}
 interface ReplaceProductsMutationVariables {
@@ -145,7 +145,7 @@ const Home: NextPage = () => {
         styles={{
           "df-messenger": {
             "--df-messenger-bot-message": orange[100],
-            "--df-messenger-button-titlebar-color": orange[900],
+            "--df-messenger-button-titlebar-color": blue.A700,
           },
         }}
       />
@@ -157,6 +157,7 @@ const Home: NextPage = () => {
       <df-messenger
         intent="WELCOME"
         chat-title="Ogabassey"
+        chat-icon="https://ogabassey-dashboard-scmn.vercel.app/ico_white.png"
         agent-id="4ac40644-8cb0-49c7-b7ee-edb35952eb50"
         language-code="en"
         wait-open="true"
