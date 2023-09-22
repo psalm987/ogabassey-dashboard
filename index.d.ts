@@ -42,3 +42,65 @@ type ApiResponse = {
   success?: boolean;
   data?: any;
 };
+
+type FulfilmentMessages = {
+  text: {
+    text: string[];
+  };
+};
+
+type OutputContext = {
+  name?: string;
+  parameters: any;
+  lifespanCount: number;
+};
+
+type SessionEntity = {
+  name: string;
+  entities: { value: string; synonyms: string[] }[];
+  entityOverrideMode: string;
+};
+
+type IntentRequest = {
+  responseId: string;
+  queryResult: {
+    queryText?: string;
+    parameters: any;
+    allRequiredParamsPresent: boolean;
+    fulfillmentText: string;
+    fulfillmentMessages: FulfilmentMessages[];
+    outputContexts: OutputContext[];
+    intent: {
+      name: string;
+      displayName: string;
+    };
+    intentDetectionConfidence: number;
+    languageCode: string;
+  };
+  originalDetectIntentRequest: {
+    source: string;
+    payload: any;
+  };
+  session: string;
+};
+
+type TextResponseTemplate = {
+  text?: {
+    text: string[];
+  };
+};
+
+type CardResponseTemplate = {
+  card?: {
+    title: string;
+    subtitle: string;
+    imageUri: string;
+    buttons: { text: string; postback: string }[];
+  };
+};
+
+type WebhookResponses = {
+  fulfillmentMessages?: Partial<TextResponseTemplate & CardResponseTemplate>[];
+  outputContexts?: OutputContext[];
+  sessionEntityTypes?: Partial<SessionEntity>[];
+};
