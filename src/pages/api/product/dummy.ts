@@ -11,11 +11,14 @@ import {
 import { DEFAULT_CHIPS, getGreeting } from "@db/utils/intent/defaultWelcome";
 import { searchProducts } from "@db/utils/products";
 
+const BACKEND_BASE_URL = "https://oga-bassey-22137.nodechef.com";
+const FRONTEND_BASE_URL = "https://ogabassey-storefront.vercel.app";
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  await connectDb();
+  // await connectDb();
   const body: IntentRequest = req.body;
   const displayIntent = body?.queryResult?.intent?.displayName;
 
@@ -33,8 +36,18 @@ export default async function handler(
       return res.status(200).json(combined);
     case "supp.search.product":
       const { products } = body?.queryResult?.parameters;
-      const result = await searchProducts({ query: products });
-      if (!result.length) {
+      // const result = await searchProducts({ query: products });
+      const q = encodeURIComponent(products);
+
+      const r = await fetch(`${BACKEND_BASE_URL}/api/v1/product/search?q=${q}`)
+        .then((res) => res.json())
+        .catch((err) => {
+          throw err;
+        });
+
+      const result = r?.data;
+
+      if (!result?.length) {
         res
           .status(200)
           .json(
@@ -44,11 +57,26 @@ export default async function handler(
           );
       } else {
         const productsCards = generateCardResponses(
-          result?.slice(0, 5).map((res) => ({
-            title: res.name,
-            subtitle: `₦${res.price?.toString()}`,
-            imageUri: res.imageUrl,
-          }))
+          result
+            ?.slice(0, 5)
+            .map(
+              (res: {
+                productName: string;
+                price: string;
+                productImages: string[];
+                id: number;
+              }) => ({
+                title: res.productName,
+                subtitle: `₦${res.price?.toString()}`,
+                imageUri: res.productImages[0],
+                buttons: [
+                  {
+                    text: "View",
+                    postback: `${FRONTEND_BASE_URL}/category/product/${res.id}`,
+                  },
+                ],
+              })
+            )
         );
         return res
           .status(200)
