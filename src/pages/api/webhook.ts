@@ -16,7 +16,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         // not from the messages webhook so dont process
         return res.status(400);
       }
-      break;
     case "GET":
       if (
         req.query["hub.verify_token"] === process.env.VERIFY_TOKEN! &&
@@ -27,7 +26,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.status(400);
       }
     default:
+      return res.status(200).json({ name: "John Doe" });
       break;
   }
-  res.status(200).json({ name: "John Doe" });
 }
