@@ -29,3 +29,4 @@ Your feedback and contributions are welcome!
 
 Compiled with ❤️ by Jones Ogolo.
 
+Here's a [demo][https://ogabassey-dashboard-scmn.vercel.app/] of this repo.
