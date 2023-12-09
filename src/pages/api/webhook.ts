@@ -5,13 +5,16 @@ type Data = {
   name: string;
 };
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const body = await req.body?.json();
   console.log(`verify token: ${req.query["hub.verify_token"]}`);
-  console.log(`body: ${req.body}`);
+  console.log(`body: ${body}`);
 
   switch (req.method) {
     case "POST":
-      const body = JSON.parse(req.body);
       if (body.field !== "messages") {
         // not from the messages webhook so dont process
         return res.status(400);
