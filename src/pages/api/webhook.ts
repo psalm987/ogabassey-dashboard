@@ -5,24 +5,29 @@ type Data = {
   name: string;
 };
 
-export default function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>
-) {
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
   console.log(`verify token: ${req.query["hub.verify_token"]}`);
   console.log(`body: ${req.body}`);
-  if (req.query["hub.verify_token"] === process.env.VERIFY_TOKEN!) {
-    switch (req.method) {
-      case "POST":
-        const body = JSON.parse(req.body);
-        if (body.field !== "messages") {
-          // not from the messages webhook so dont process
-          return res.status(400);
-        }
-        break;
-      default:
-        break;
-    }
+
+  switch (req.method) {
+    case "POST":
+      const body = JSON.parse(req.body);
+      if (body.field !== "messages") {
+        // not from the messages webhook so dont process
+        return res.status(400);
+      }
+      break;
+    case "GET":
+      if (
+        req.query["hub.verify_token"] === process.env.VERIFY_TOKEN! &&
+        req.query["hub.mode"] === "subscribe"
+      ) {
+        res.status(200).send(req.query["hub.challenge"]);
+      } else {
+        res.status(400);
+      }
+    default:
+      break;
   }
   res.status(200).json({ name: "John Doe" });
 }
