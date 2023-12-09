@@ -5,13 +5,10 @@ type Data = {
   name: string;
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const body = await req.body?.json();
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  const body = req.body;
   console.log(`verify token: ${req.query["hub.verify_token"]}`);
-  console.log(`body: ${body}`);
+  console.log(`body: ${JSON.stringify(body, null, 2)}`);
 
   switch (req.method) {
     case "POST":
