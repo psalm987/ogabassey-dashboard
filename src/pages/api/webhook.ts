@@ -22,7 +22,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         req.query["hub.verify_token"] === process.env.VERIFY_TOKEN! &&
         req.query["hub.mode"] === "subscribe"
       ) {
-        res.status(200).send(req.query["hub.challenge"]);
+        res.status(200).send({ result: req.query["hub.challenge"] });
       } else {
         res.status(400);
       }
