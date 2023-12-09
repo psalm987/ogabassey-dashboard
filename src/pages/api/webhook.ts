@@ -12,10 +12,16 @@ export default function handler(
   console.log(`verify token: ${req.query["hub.verify_token"]}`);
   console.log(`body: ${req.body}`);
   if (req.query["hub.verify_token"] === process.env.VERIFY_TOKEN!) {
-    const body = JSON.parse(req.body);
-    if (body.field !== "messages") {
-      // not from the messages webhook so dont process
-      return res.status(400);
+    switch (req.method) {
+      case "POST":
+        const body = JSON.parse(req.body);
+        if (body.field !== "messages") {
+          // not from the messages webhook so dont process
+          return res.status(400);
+        }
+        break;
+      default:
+        break;
     }
   }
   res.status(200).json({ name: "John Doe" });
