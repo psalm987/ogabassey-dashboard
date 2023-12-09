@@ -8,7 +8,7 @@ type Data = {
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const body = req.body;
   console.log(`verify token: ${req.query["hub.verify_token"]}`);
-  console.log(`body: ${JSON.stringify(body, null, 2)}`);
+  //   console.log(`body: ${JSON.stringify(body, null, 2)}`);
 
   switch (req.method) {
     case "POST":
@@ -16,6 +16,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         // not from the messages webhook so dont process
         return res.status(400);
       }
+      console.log("entry: ", body?.entry);
     case "GET":
       if (
         req.query["hub.verify_token"] === process.env.VERIFY_TOKEN! &&
