@@ -99,10 +99,10 @@ export default async function handler(
           return res.status(400);
         }
         console.log("About to");
-        await sendTextMessage(
-          `**About to send a message from Ogabassey chatbot!**`,
-          "2349128202075"
-        );
+        // await sendTextMessage(
+        //   `**About to send a message from Ogabassey chatbot!**`,
+        //   "2349128202075"
+        // );
         console.log("Pre echo");
         change?.value?.metadata?.phone_number_id &&
           (await sendTextMessage(
