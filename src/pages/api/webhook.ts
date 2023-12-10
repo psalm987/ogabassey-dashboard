@@ -98,7 +98,7 @@ export default async function handler(
           // not from the messages webhook so dont process
           return res.status(400);
         }
-        console.log("About to");
+        console.log("About to change: ", change);
         // await sendTextMessage(
         //   `**About to send a message from Ogabassey chatbot!**`,
         //   "2349128202075"
