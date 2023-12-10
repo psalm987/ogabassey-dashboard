@@ -181,11 +181,11 @@ export default async function handler(
         console.log("About to change: ", change);
         const sender = getSender(change)
         console.log("Pre echo sender:", sender);
-        sender &&
-          (await sendTextMessage(
-            `**Welcome to Ogabassey Echo chatbot!** \n${change.value.messages?.[0]?.text?.body}`,
-            sender
-          ));
+        // sender &&
+        //   (await sendTextMessage(
+        //     `**Welcome to Ogabassey Echo chatbot!** \n${change.value.messages?.[0]?.text?.body}`,
+        //     sender
+        //   ));
         console.log("Echoed");
       case "GET":
         if (
