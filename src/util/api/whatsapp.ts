@@ -8,6 +8,8 @@ const whatsappAxios = axios.create({
   baseURL: `https://graph.facebook.com/${whatsappAPIversion}/`,
   headers: {
     Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
+    "Content-Type": "application/json",
+    
   },
 });
 
@@ -26,8 +28,11 @@ export const registerToCloudAPI = async (pin: string) => {
 export const sendTextMessage = async (message: string, to: string) => {
   return await whatsappAxios.post(`${whatsappSenderPhoneNumber}/messages`, {
     messaging_product: "whatsapp",
+    recipient_type: "individual",
     to,
+    type: "text",
     text: {
+      preview_url: false,
       body: message,
     },
   });
