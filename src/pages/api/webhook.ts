@@ -159,8 +159,10 @@ const getSender = (change: {
     throw new Error(JSON.stringify(change.value.errors))
   } else if (change?.value?.messages) {
     return change?.value?.messages?.[0]?.from
+    // } else if (change?.value?.statuses) {
+    //   return change?.value?.statuses?.[0]?.recipient_id
   } else if (change?.value?.statuses) {
-    return change?.value?.statuses?.[0]?.recipient_id
+    console.log("Statuses: ", change?.value?.statuses.map((stat) => stat))
   }
 }
 
@@ -181,11 +183,11 @@ export default async function handler(
         console.log("About to change: ", change);
         const sender = getSender(change)
         console.log("Pre echo sender:", sender);
-        // sender &&
-        //   (await sendTextMessage(
-        //     `**Welcome to Ogabassey Echo chatbot!** \n${change.value.messages?.[0]?.text?.body}`,
-        //     sender
-        //   ));
+        sender &&
+          (await sendTextMessage(
+            `**Welcome to Ogabassey Echo chatbot!** \n${change.value.messages?.[0]?.text?.body}`,
+            sender
+          ));
         console.log("Echoed");
       case "GET":
         if (
