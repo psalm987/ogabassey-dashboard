@@ -2,65 +2,118 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { sendTextMessage } from "src/util/api/whatsapp";
 
-type Message = {
+type WebhookMessage = {
   from: string;
   id: string;
   timestamp: string;
-  type?: "text";
-  text: {
+  type?: "audio" |
+  "button" |
+  "document" |
+  "text" |
+  "image" |
+  "interactive" |
+  "order" |
+  "sticker" |
+  "system" |
+  "unknown" |
+  "video";
+  text?: {
     body: string;
+  };
+  system?: {
+    body: string;
+    identity: string;
+    new_wa_id: string;
+    wa_id: string;
+    type: string;
+    customer: string;
+  }
+};
+
+// type ContactExtentionType = "HOME" | "WORK";
+
+// type ContactExtentionAddress = {
+//   city: string;
+//   country: string;
+//   country_code: string;
+//   state: string;
+//   street: string;
+//   type: ContactExtentionType;
+//   zip: string;
+// };
+
+// type ContactExtentionEmail = {
+//   email: string;
+//   type: ContactExtentionType;
+// };
+
+// type ContactExtentionName = {
+//   formatted_name: string;
+//   first_name: string;
+//   last_name: string;
+//   middle_name: string;
+//   suffix: string;
+//   prefix: string;
+// };
+
+// type ContactExtentionOrg = {
+//   company: string;
+//   department: string;
+//   title: string;
+// };
+
+// type ContactExtentionPhone = {
+//   phone: string;
+//   wa_id: string;
+//   type: ContactExtentionType;
+// };
+
+// type ContactExtentionUrl = {
+//   url: string;
+//   type: ContactExtentionType;
+// };
+
+// type ContactExtention = {
+//   addresses: ContactExtentionAddress[];
+//   birthday: string;
+//   emails: ContactExtentionEmail;
+//   name: ContactExtentionName;
+//   org: ContactExtentionOrg;
+//   phones: ContactExtentionPhone[];
+//   urls: ContactExtentionUrl[];
+// };
+
+type WebhookContact = {
+  wa_id: string;
+  profile: {
+    name: string;
   };
 };
 
-type ContactExtentionType = "HOME" | "WORK";
-
-type ContactExtentionAddress = {
-  city: string;
-  country: string;
-  country_code: string;
-  state: string;
-  street: string;
-  type: ContactExtentionType;
-  zip: string;
-};
-
-type ContactExtentionEmail = {
-  email: string;
-  type: ContactExtentionType;
-};
-
-type ContactExtentionName = {
-  formatted_name: string;
-  first_name: string;
-  last_name: string;
-  middle_name: string;
-  suffix: string;
-  prefix: string;
-};
-type ContactExtentionOrg = {
-  company: string;
-  department: string;
+type WebhookError = {
+  code: number;
   title: string;
-};
-type ContactExtentionPhone = {
-  phone: string;
-  wa_id: string;
-  type: ContactExtentionType;
-};
-type ContactExtentionUrl = {
-  url: string;
-  type: ContactExtentionType;
+  message: string;
+  error_data: {
+    details: string;
+  };
 };
 
-type ContactExtention = {
-  addresses: ContactExtentionAddress[];
-  birthday: string;
-  emails: ContactExtentionEmail;
-  name: ContactExtentionName;
-  org: ContactExtentionOrg;
-  phones: ContactExtentionPhone[];
-  urls: ContactExtentionUrl[];
-};
+type WebhookStatus = {
+  biz_opaque_callback_data: string;
+  conversation: {
+    id: string;
+    origin: {
+      type: "authentication" | "marketing" | "utility" | "service" | "referral_conversion"
+      expiration_timestamp: string
+    }
+  }
+  errors: WebhookError[];
+  id: string;
+  recipient_id: string;
+  status: "delivered" | "read" | "sent";
+  timestamp: string;
+}
 
 type WebhookData = {
   object: "whatsapp_business_account";
@@ -75,7 +128,10 @@ type WebhookData = {
               display_phone_number: string;
               phone_number_id: string;
             };
-            messages: Message[];
+            messages?: WebhookMessage[];
+            contacts?: WebhookContact[];
+            errors?: WebhookError[];
+            statuses?: WebhookStatus[]
           };
           field: "messages" | string;
         }
@@ -83,6 +139,30 @@ type WebhookData = {
     }
   ];
 };
+
+const getSender = (change: {
+  value: {
+    messaging_product: "whatsapp";
+    metadata: {
+      display_phone_number: string;
+      phone_number_id: string;
+    };
+    messages?: WebhookMessage[];
+    contacts?: WebhookContact[];
+    errors?: WebhookError[];
+    statuses?: WebhookStatus[]
+  };
+  field: "messages" | string;
+
+}) => {
+  if (change?.value?.errors) {
+    throw new Error(JSON.stringify(change.value.errors))
+  } else if (change?.value?.messages) {
+    return change?.value?.messages?.[0]?.from
+  } else if (change?.value?.statuses) {
+    return change?.value?.statuses?.[0]?.recipient_id
+  }
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -99,17 +179,13 @@ export default async function handler(
           return res.status(400);
         }
         console.log("About to change: ", change);
-        // await sendTextMessage(
-        //   `**About to send a message from Ogabassey chatbot!**`,
-        //   "2349128202075"
-        // );
-        console.log("Pre echo");
-        change?.value?.metadata?.phone_number_id &&
+        const sender = getSender(change)
+        console.log("Pre echo sender:", sender);
+        sender &&
           (await sendTextMessage(
             `**Welcome to Ogabassey Echo chatbot!** \n${change.value.messages?.[0]?.text?.body}`,
-            change?.value?.metadata?.phone_number_id
+            sender
           ));
-
         console.log("Echoed");
       case "GET":
         if (
