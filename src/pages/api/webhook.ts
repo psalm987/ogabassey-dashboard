@@ -90,8 +90,6 @@ export default async function handler(
 ) {
   try {
     const body: WebhookData = req.body;
-    console.log(`verify token: ${req.query["hub.verify_token"]}`);
-    //   console.log(`body: ${JSON.stringify(body, null, 2)}`);
 
     switch (req.method) {
       case "POST":
@@ -100,11 +98,19 @@ export default async function handler(
           // not from the messages webhook so dont process
           return res.status(400);
         }
+        console.log("About to");
+        await sendTextMessage(
+          `**About to send a message from Ogabassey chatbot!**`,
+          "2349128202075"
+        );
+        console.log("Pre echo");
         change?.value?.metadata?.phone_number_id &&
           (await sendTextMessage(
             `**Welcome to Ogabassey Echo chatbot!** \n${change.value.messages?.[0]?.text?.body}`,
             change?.value?.metadata?.phone_number_id
           ));
+
+        console.log("Echoed");
       case "GET":
         if (
           req.query["hub.verify_token"] === process.env.VERIFY_TOKEN! &&
