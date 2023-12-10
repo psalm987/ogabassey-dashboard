@@ -2,11 +2,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { sendTextMessage } from "src/util/api/whatsapp";
 
-type MessageBase = {
+type Message = {
   from: string;
   id: string;
   timestamp: string;
   type?: "text";
+  text: {
+    body: string;
+  };
 };
 
 type ContactExtentionType = "HOME" | "WORK";
@@ -72,6 +75,7 @@ type WebhookData = {
               display_phone_number: string;
               phone_number_id: string;
             };
+            messages: Message[];
           };
           field: "messages" | string;
         }
@@ -98,7 +102,7 @@ export default async function handler(
         }
         change?.value?.metadata?.phone_number_id &&
           (await sendTextMessage(
-            "Welcome to Ogabassey chatbot!",
+            `**Welcome to Ogabassey Echo chatbot!** \n${change.value.messages?.[0]?.text?.body}`,
             change?.value?.metadata?.phone_number_id
           ));
       case "GET":
@@ -112,7 +116,6 @@ export default async function handler(
         }
       default:
         return res.status(200).json({ name: "John Doe" });
-        break;
     }
   } catch (e) {
     console.error(e);
