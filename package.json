@@ -6,7 +6,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "ngrok-link":"ngrok http 3000"
+    "ngrok-link": "ngrok http 3000"
   },
   "dependencies": {
     "@apollo/client": "^3.7.10",
@@ -19,6 +19,7 @@
     "@reduxjs/toolkit": "^1.6.2",
     "@types/papaparse": "^5.3.7",
     "apollo-server-micro": "2.25.1",
+    "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",
     "graphql": "^15.8.0",
     "jsonwebtoken": "^9.0.0",
