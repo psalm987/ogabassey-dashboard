@@ -8,7 +8,9 @@ import { GlobalStyles } from "@mui/material";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 
 const client = new ApolloClient({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_URI,
+  uri:
+    process.env.NEXT_PUBLIC_GRAPHQL_URI ||
+    `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/graphql`,
   cache: new InMemoryCache(),
 });
 
