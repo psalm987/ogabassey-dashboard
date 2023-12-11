@@ -158,7 +158,7 @@ const Home: NextPage = () => {
       <df-messenger
         intent="WELCOME"
         chat-title="Ogabassey"
-        chat-icon="https://ogabassey-dashboard-scmn.vercel.app/ico_white.png"
+        chat-icon={`https://${process.env.NEXT_PUBLIC_VERCEL_URL}/ico_white.png`}
         agent-id="4ac40644-8cb0-49c7-b7ee-edb35952eb50"
         language-code="en"
         wait-open="true"
