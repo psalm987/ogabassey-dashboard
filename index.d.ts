@@ -36,6 +36,18 @@ type UserCreateProps = UserProps & {
   passwordHash: undefined;
 };
 
+// SESSION
+type SessionProps = {
+  _id?: string;
+  userId: string;
+  sessionId: string;
+  source: "WHATSAPP";
+  createdAt: Date;
+  modifiedAt: Date;
+}
+
+type SessionMainProps = Omit<SessionProps, "createdAt" | "modifiedAt">
+
 //API
 type ApiResponse = {
   msg?: string;
@@ -104,3 +116,5 @@ type WebhookResponses = {
   outputContexts?: OutputContext[];
   sessionEntityTypes?: Partial<SessionEntity>[];
 };
+
+
