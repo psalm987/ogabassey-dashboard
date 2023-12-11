@@ -1,22 +1,28 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import { addSession, findSession } from "@db/utils/session";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { sendTextMessage } from "src/util/api/whatsapp";
+import {
+  continueConversation,
+  startConversation,
+} from "src/util/api/ogabassey-assistant";
+import { markMessageRead, sendTextMessage } from "src/util/api/whatsapp";
 
 type WebhookMessage = {
   from: string;
   id: string;
   timestamp: string;
-  type?: "audio" |
-  "button" |
-  "document" |
-  "text" |
-  "image" |
-  "interactive" |
-  "order" |
-  "sticker" |
-  "system" |
-  "unknown" |
-  "video";
+  type?:
+    | "audio"
+    | "button"
+    | "document"
+    | "text"
+    | "image"
+    | "interactive"
+    | "order"
+    | "sticker"
+    | "system"
+    | "unknown"
+    | "video";
   text?: {
     body: string;
   };
@@ -27,61 +33,8 @@ type WebhookMessage = {
     wa_id: string;
     type: string;
     customer: string;
-  }
+  };
 };
-
-// type ContactExtentionType = "HOME" | "WORK";
-
-// type ContactExtentionAddress = {
-//   city: string;
-//   country: string;
-//   country_code: string;
-//   state: string;
-//   street: string;
-//   type: ContactExtentionType;
-//   zip: string;
-// };
-
-// type ContactExtentionEmail = {
-//   email: string;
-//   type: ContactExtentionType;
-// };
-
-// type ContactExtentionName = {
-//   formatted_name: string;
-//   first_name: string;
-//   last_name: string;
-//   middle_name: string;
-//   suffix: string;
-//   prefix: string;
-// };
-
-// type ContactExtentionOrg = {
-//   company: string;
-//   department: string;
-//   title: string;
-// };
-
-// type ContactExtentionPhone = {
-//   phone: string;
-//   wa_id: string;
-//   type: ContactExtentionType;
-// };
-
-// type ContactExtentionUrl = {
-//   url: string;
-//   type: ContactExtentionType;
-// };
-
-// type ContactExtention = {
-//   addresses: ContactExtentionAddress[];
-//   birthday: string;
-//   emails: ContactExtentionEmail;
-//   name: ContactExtentionName;
-//   org: ContactExtentionOrg;
-//   phones: ContactExtentionPhone[];
-//   urls: ContactExtentionUrl[];
-// };
 
 type WebhookContact = {
   wa_id: string;
@@ -104,16 +57,21 @@ type WebhookStatus = {
   conversation: {
     id: string;
     origin: {
-      type: "authentication" | "marketing" | "utility" | "service" | "referral_conversion"
-      expiration_timestamp: string
-    }
-  }
+      type:
+        | "authentication"
+        | "marketing"
+        | "utility"
+        | "service"
+        | "referral_conversion";
+      expiration_timestamp: string;
+    };
+  };
   errors: WebhookError[];
   id: string;
   recipient_id: string;
   status: "delivered" | "read" | "sent";
   timestamp: string;
-}
+};
 
 type WebhookData = {
   object: "whatsapp_business_account";
@@ -131,7 +89,7 @@ type WebhookData = {
             messages?: WebhookMessage[];
             contacts?: WebhookContact[];
             errors?: WebhookError[];
-            statuses?: WebhookStatus[]
+            statuses?: WebhookStatus[];
           };
           field: "messages" | string;
         }
@@ -150,21 +108,21 @@ const getSender = (change: {
     messages?: WebhookMessage[];
     contacts?: WebhookContact[];
     errors?: WebhookError[];
-    statuses?: WebhookStatus[]
+    statuses?: WebhookStatus[];
   };
   field: "messages" | string;
-
 }) => {
   if (change?.value?.errors) {
-    throw new Error(JSON.stringify(change.value.errors))
+    throw new Error(JSON.stringify(change.value.errors));
   } else if (change?.value?.messages) {
-    return change?.value?.messages?.[0]?.from
-    // } else if (change?.value?.statuses) {
-    //   return change?.value?.statuses?.[0]?.recipient_id
+    return change?.value?.messages?.[0]?.from;
   } else if (change?.value?.statuses) {
-    console.log("Statuses: ", change?.value?.statuses.map((stat) => stat))
+    console.log(
+      "Statuses: ",
+      change?.value?.statuses.map((stat) => stat)
+    );
   }
-}
+};
 
 export default async function handler(
   req: NextApiRequest,
@@ -181,14 +139,31 @@ export default async function handler(
           return res.status(400);
         }
         console.log("About to change: ", change);
-        const sender = getSender(change)
-        console.log("Pre echo sender:", sender);
-        sender &&
-          (await sendTextMessage(
-            `**Welcome to Ogabassey Echo chatbot!** \n${change.value.messages?.[0]?.text?.body}`,
-            sender
-          ));
-        console.log("Echoed");
+        let conversation;
+        const sender = getSender(change);
+        if (sender) {
+          console.log("Pre echo sender:", sender);
+          change?.value?.messages?.[0]?.id &&
+            (await markMessageRead(change.value.messages[0].id, sender));
+          const senderMessage = change.value.messages?.[0]?.text?.body;
+          let session = await findSession({ userId: sender });
+          if (!session?.sessionId && session.source !== "WHATSAPP") {
+            conversation = await startConversation(senderMessage!);
+            const { threadId } = conversation;
+            session = await addSession({
+              userId: sender,
+              sessionId: threadId!,
+              source: "WHATSAPP",
+            });
+          } else if (session?.sessionId && session.source !== "WHATSAPP") {
+            conversation = await continueConversation(
+              session?.sessionId,
+              senderMessage!
+            );
+          }
+          await sendTextMessage(conversation?.message!, sender);
+          console.log("Echoed");
+        }
       case "GET":
         if (
           req.query["hub.verify_token"] === process.env.VERIFY_TOKEN! &&
@@ -203,18 +178,12 @@ export default async function handler(
     }
   } catch (error: any) {
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
       console.error(error.response.data);
       console.error(error.response.status);
       // console.error(error.response.headers);
     } else if (error.request) {
-      // The request was made but no response was received
-      // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-      // http.ClientRequest in node.js
       console.error(error.request);
     } else {
-      // Something happened in setting up the request that triggered an Error
       console.error("Error", error.message);
     }
     return res.status(500).send({ error });

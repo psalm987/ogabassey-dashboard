@@ -1,4 +1,7 @@
+import connectDb from "@db/config";
 import Product from "@db/models/product";
+
+connectDb();
 
 // RETRIEVE DATA FROM THE DATABASE
 export const getAllProducts = async () => await Product.find({});
@@ -13,6 +16,7 @@ export const searchProducts = async ({
   specs?: ProductSpecsProps;
 }) => {
   if (!query) return [];
+  console.log("FIRST...");
   const fuzzySearch = await Product.find(
     {
       $text: { $search: query },
@@ -25,6 +29,8 @@ export const searchProducts = async ({
   const uniqueCharactersArray = Array.from(
     new Set(query.replaceAll(" ", "").toLowerCase().split(""))
   );
+
+  console.log("SECOND...");
   const characterSearch = await Product.find({
     $and: uniqueCharactersArray.map((q) => ({
       name: { $regex: q, $options: "i" },
@@ -33,10 +39,12 @@ export const searchProducts = async ({
 
   const products: ProductProps[] = [];
   const everything = [...fuzzySearch, ...characterSearch];
+  console.log("THIRD...");
   everything.map(
     (product) =>
       !products.find((prod) => product.id === prod.id) && products.push(product)
   );
+  console.log("END...");
   return products;
 };
 
