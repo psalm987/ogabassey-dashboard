@@ -1,9 +1,10 @@
 import { searchProducts } from "@db/utils/products";
 import axios from "axios";
+import OpenAI from "openai";
 import { ThreadMessagesPage } from "openai/resources/beta/threads/messages/messages";
 import { Run } from "openai/resources/beta/threads/runs/runs";
-import { Thread } from "openai/resources/beta/threads/threads";
-import { openai } from "src/util/api/openai";
+
+const openai = new OpenAI();
 
 const search_product = async (product: string) => {
   // return await searchProducts({ query: product });
