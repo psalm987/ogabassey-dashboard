@@ -1,14 +1,22 @@
 // import { searchProducts } from "@db/utils/products";
-import OpenAI from "openai";
-import type { ThreadMessagesPage } from "openai/resources/beta/threads/messages/messages";
-import type { Run } from "openai/resources/beta/threads/runs/runs";
+import type {
+  Messages,
+  ThreadMessage,
+  ThreadMessagesPage,
+} from "openai/resources/beta/threads/messages/messages";
+import type { Run, RunsPage } from "openai/resources/beta/threads/runs/runs";
 import searchProduct from "./product";
 import rest from "./timer";
+import axios from "axios";
+import { Thread } from "openai/resources/beta/threads/threads";
 
-let openai: OpenAI;
-(() => {
-  openai = new OpenAI();
-})();
+const openaiAxios = axios.create({
+  baseURL: "https://api.openai.com/v1/",
+  headers: {
+    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    "OpenAI-Organization": "org-LloRHUNuyevC1m6mbEDMTwmM",
+  },
+});
 
 const assistantID = "asst_ll0e5xk5TP2JrxRVTWRf0nvz";
 const availableFunctions: {
@@ -16,6 +24,58 @@ const availableFunctions: {
 } = {
   search_product: searchProduct,
 };
+
+async function createRun(thread_id: string): Run {
+  const res = await openaiAxios.post(`threads/${thread_id}/runs/`, {
+    assistant_id: assistantID,
+  });
+  return res.data;
+}
+
+async function retrieveRun(thread_id: string, run_id: string): Run {
+  const res = await openaiAxios.get(`threads/${thread_id}/runs/${run_id}`);
+  return res.data;
+}
+
+async function listRuns(thread_id: string): RunsPage {
+  const res = await openaiAxios.get(`threads/${thread_id}/runs`);
+  return res.data;
+}
+
+async function cancelRun(thread_id: string, run_id: string) {
+  const res = await openaiAxios.get(
+    `threads/${thread_id}/runs/${run_id}/cancel`
+  );
+  return res.data;
+}
+
+async function submitToolOutputsToRun(
+  thread_id: string,
+  run_id: string,
+  tool_outputs: any[]
+): Run {
+  const res = await openaiAxios.post(
+    `threads/${thread_id}/runs/${run_id}/submit_tool_outputs`,
+    {
+      tool_outputs: assistantID,
+    }
+  );
+
+  return res.data;
+}
+
+async function listMessages(thread_id: string): ThreadMessagesPage {
+  const res = await openaiAxios.get(`threads/${thread_id}/messages`);
+  return res.data;
+}
+async function createMessage(thread_id: string, body: any): ThreadMessage {
+  const res = await openaiAxios.post(`threads/${thread_id}/messages`, body);
+  return res.data;
+}
+async function createThread(body: any): Thread {
+  const res = await openaiAxios.post(`threads`, body);
+  return res.data;
+}
 
 async function checkRequiredAction(run: Run) {
   if (run?.status === "requires_action" && run?.required_action) {
@@ -33,21 +93,15 @@ async function checkRequiredAction(run: Run) {
           output: JSON.stringify(functionResponse?.[0] || null),
         });
       }
-      if (toolOutputs.length)
-        return await openai.beta.threads.runs.submitToolOutputs(
-          run.thread_id,
-          run.id,
-          { tool_outputs: toolOutputs }
-        );
+      if (toolOutputs.length) {
+        return await submitToolOutputsToRun(run.thread_id, run.id, toolOutputs);
+      }
     }
   }
 }
 
 async function createAndRetrieveRun(threadId: string) {
-  const run = await openai.beta.threads.runs.create(threadId, {
-    assistant_id: assistantID,
-  });
-
+  const run = await createRun(threadId);
   return await reRun(run);
 }
 
@@ -59,16 +113,11 @@ async function reRun(run: Run) {
     count <= 10
   ) {
     console.log("Running session...", runStep?.status);
-    runStep = await openai.beta.threads.runs.retrieve(run.thread_id, run.id);
+    runStep = await retrieveRun(run.thread_id, run.id);
     count++;
     await rest(1);
   }
   return runStep;
-}
-
-async function retrieveMessagesFromThread(thread: string) {
-  const result = await openai.beta.threads.messages.list(thread);
-  return result;
 }
 
 function extractMessage(response: ThreadMessagesPage) {
@@ -77,13 +126,13 @@ function extractMessage(response: ThreadMessagesPage) {
 }
 
 async function stopRunningThreadRuns(threadId: string) {
-  const thread = await openai.beta.threads.runs.list(threadId);
+  const thread = await listRuns(threadId);
   await Promise.all(
-    thread.data.map(async (run) => {
+    thread?.data?.map(async (run) => {
       run?.status !== "completed" &&
         console.log("Running status...", run?.status);
       ["in_progress", "queued", "requires_action"].includes(run.status) &&
-        (await openai.beta.threads.runs.cancel(threadId, run.id));
+        (await cancelRun(threadId, run.id));
     })
   );
 }
@@ -100,7 +149,7 @@ export default async function makeConversation(
 
     // CONTINUE CONVERSATION
     console.log("step 2");
-    const createdMessage = await openai.beta.threads.messages.create(threadId, {
+    const createdMessage = await createMessage(threadId, {
       role: "user",
       content: message,
     });
@@ -109,7 +158,7 @@ export default async function makeConversation(
   } else {
     // CREATE NEW CONVERSATION
     console.log("step 3");
-    const createdThread = await openai.beta.threads.create({
+    const createdThread = await createThread({
       messages: [
         {
           role: "user",
@@ -128,6 +177,6 @@ export default async function makeConversation(
   const tookExtraAction = await checkRequiredAction(run!);
   if (tookExtraAction && run) await reRun(run);
   console.log("step 6");
-  const result = await retrieveMessagesFromThread(useThreadId);
+  const result = await listMessages(useThreadId);
   return { message: extractMessage(result), threadId: useThreadId };
 }
