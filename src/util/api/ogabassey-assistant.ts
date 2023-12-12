@@ -87,11 +87,12 @@ const getMessage = (response: ThreadMessagesPage) => {
 const stopRunningThreadRuns = async (threadId: string) => {
   const thread = await openai.beta.threads.runs.list(threadId);
   await Promise.all(
-    thread.data.map(
-      async (run) =>
-        ["in_progress", "queued", "requires_action"].includes(run.status) &&
-        (await openai.beta.threads.runs.cancel(threadId, run.id))
-    )
+    thread.data.map(async (run) => {
+      run?.status !== "completed" &&
+        console.log("Running status...", run?.status);
+      ["in_progress", "queued", "requires_action"].includes(run.status) &&
+        (await openai.beta.threads.runs.cancel(threadId, run.id));
+    })
   );
 };
 
