@@ -1,8 +1,8 @@
-import { searchProducts } from "@db/utils/products";
+// import { searchProducts } from "@db/utils/products";
 import axios from "axios";
 import OpenAI from "openai";
-import { ThreadMessagesPage } from "openai/resources/beta/threads/messages/messages";
-import { Run } from "openai/resources/beta/threads/runs/runs";
+import type { ThreadMessagesPage } from "openai/resources/beta/threads/messages/messages";
+import type { Run } from "openai/resources/beta/threads/runs/runs";
 
 const openai = new OpenAI();
 
