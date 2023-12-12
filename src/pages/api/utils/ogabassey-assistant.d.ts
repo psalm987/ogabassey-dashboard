@@ -5,8 +5,12 @@ import type { Run } from "openai/resources/beta/threads/runs/runs";
 import searchProduct from "./product";
 import rest from "./timer";
 
+let openai: OpenAI;
+(() => {
+  openai = new OpenAI();
+})();
+
 const assistantID = "asst_ll0e5xk5TP2JrxRVTWRf0nvz";
-const openai = new OpenAI();
 const availableFunctions: {
   [key: string]: any;
 } = {
