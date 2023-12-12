@@ -152,21 +152,21 @@ export default async function handler(
           console.info("SESSION...", session);
 
           // GET  CONVERSATION RESPONSE
-          // const conversation = await makeConversation(
-          //   senderMessage!,
-          //   session?.sessionId
-          // );
+          const conversation = await makeConversation(
+            senderMessage!,
+            session?.sessionId
+          );
 
-          const conversation = { message: senderMessage };
+          // const conversation = { message: senderMessage };
           console.info(conversation);
 
           // PERSIST THREAD ID AS SESSION
-          // if (!session)
-          //   session = await addSession({
-          //     userId: sender,
-          //     sessionId: conversation.threadId!,
-          //     source: "WHATSAPP",
-          //   });
+          if (!session)
+            session = await addSession({
+              userId: sender,
+              sessionId: conversation.threadId!,
+              source: "WHATSAPP",
+            });
 
           // SEND RESPONSE
           await sendTextMessage(conversation?.message!, sender);
