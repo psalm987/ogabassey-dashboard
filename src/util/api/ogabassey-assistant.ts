@@ -14,6 +14,7 @@ const openaiAxios = axios.create({
   headers: {
     Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
     "OpenAI-Organization": "org-LloRHUNuyevC1m6mbEDMTwmM",
+    "OpenAI-Beta": "assistants=v1",
   },
 });
 
@@ -25,9 +26,11 @@ const availableFunctions: {
 };
 
 async function createRun(thread_id: string): Promise<Run> {
-  const res = await openaiAxios.post(`threads/${thread_id}/runs/`, {
+  const res = await openaiAxios.post(`threads/${thread_id}/runs`, {
     assistant_id: assistantID,
   });
+
+  console.log("Created run...", res.data);
   return res.data;
 }
 
@@ -146,7 +149,7 @@ export default async function makeConversation(
   let useThreadId;
   if (threadId) {
     // STOP ANY RUNS ON THE THREAD
-    console.log("step 1...", openaiAxios.defaults.headers.common);
+    console.log("step 1...", openaiAxios.defaults.headers);
     await stopRunningThreadRuns(threadId);
 
     // CONTINUE CONVERSATION

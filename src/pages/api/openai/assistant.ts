@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 import makeConversation from "src/util/api/ogabassey-assistant";
+import { complete } from "src/util/api/openai";
 
 export default async function handler(
   req: NextApiRequest,
@@ -14,7 +15,7 @@ export default async function handler(
         if (!message) {
           throw new URIError();
         }
-        const completion = await makeConversation(message);
+        const completion = await complete(message);
         return res.status(200).json({ result: completion });
       default:
         return res.status(405).json({ msg: "Invalid method", success: false });
