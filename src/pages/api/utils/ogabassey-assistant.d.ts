@@ -95,9 +95,11 @@ export default async function makeConversation(
   let useThreadId;
   if (threadId) {
     // STOP ANY RUNS ON THE THREAD
+    console.log("step 1");
     await stopRunningThreadRuns(threadId);
 
     // CONTINUE CONVERSATION
+    console.log("step 2");
     const createdMessage = await openai.beta.threads.messages.create(threadId, {
       role: "user",
       content: message,
@@ -106,6 +108,7 @@ export default async function makeConversation(
     useThreadId = createdMessage.thread_id;
   } else {
     // CREATE NEW CONVERSATION
+    console.log("step 3");
     const createdThread = await openai.beta.threads.create({
       messages: [
         {
@@ -118,9 +121,13 @@ export default async function makeConversation(
   }
 
   // RUN CONVERSATION
+
+  console.log("step 4");
   let run = await createAndRetrieveRun(useThreadId);
+  console.log("step 5");
   const tookExtraAction = await checkRequiredAction(run!);
   if (tookExtraAction && run) await reRun(run);
+  console.log("step 6");
   const result = await retrieveMessagesFromThread(useThreadId);
   return { message: extractMessage(result), threadId: useThreadId };
 }
