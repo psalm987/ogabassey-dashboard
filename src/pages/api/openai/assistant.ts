@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import makeConversation from "src/pages/api/utils/ogabassey-assistant";
+import makeConversation from "src/util/api/ogabassey-assistant";
 
 export default async function handler(
   req: NextApiRequest,

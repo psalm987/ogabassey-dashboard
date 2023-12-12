@@ -1,8 +1,8 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { addSession, findSession } from "@db/utils/session";
 import type { NextApiRequest, NextApiResponse } from "next";
-import makeConversation from "./utils/ogabassey-assistant";
-import { markMessageRead, sendTextMessage } from "./utils/whatsapp";
+import makeConversation from "../../util/api/ogabassey-assistant";
+import { markMessageRead, sendTextMessage } from "../../util/api/whatsapp";
 
 type WebhookMessage = {
   from: string;

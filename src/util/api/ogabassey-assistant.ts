@@ -1,6 +1,5 @@
 // import { searchProducts } from "@db/utils/products";
 import type {
-  Messages,
   ThreadMessage,
   ThreadMessagesPage,
 } from "openai/resources/beta/threads/messages/messages";
@@ -25,19 +24,19 @@ const availableFunctions: {
   search_product: searchProduct,
 };
 
-async function createRun(thread_id: string): Run {
+async function createRun(thread_id: string): Promise<Run> {
   const res = await openaiAxios.post(`threads/${thread_id}/runs/`, {
     assistant_id: assistantID,
   });
   return res.data;
 }
 
-async function retrieveRun(thread_id: string, run_id: string): Run {
+async function retrieveRun(thread_id: string, run_id: string): Promise<Run> {
   const res = await openaiAxios.get(`threads/${thread_id}/runs/${run_id}`);
   return res.data;
 }
 
-async function listRuns(thread_id: string): RunsPage {
+async function listRuns(thread_id: string): Promise<RunsPage> {
   const res = await openaiAxios.get(`threads/${thread_id}/runs`);
   return res.data;
 }
@@ -53,7 +52,7 @@ async function submitToolOutputsToRun(
   thread_id: string,
   run_id: string,
   tool_outputs: any[]
-): Run {
+): Promise<Run> {
   const res = await openaiAxios.post(
     `threads/${thread_id}/runs/${run_id}/submit_tool_outputs`,
     {
@@ -64,15 +63,18 @@ async function submitToolOutputsToRun(
   return res.data;
 }
 
-async function listMessages(thread_id: string): ThreadMessagesPage {
+async function listMessages(thread_id: string): Promise<ThreadMessagesPage> {
   const res = await openaiAxios.get(`threads/${thread_id}/messages`);
   return res.data;
 }
-async function createMessage(thread_id: string, body: any): ThreadMessage {
+async function createMessage(
+  thread_id: string,
+  body: any
+): Promise<ThreadMessage> {
   const res = await openaiAxios.post(`threads/${thread_id}/messages`, body);
   return res.data;
 }
-async function createThread(body: any): Thread {
+async function createThread(body: any): Promise<Thread> {
   const res = await openaiAxios.post(`threads`, body);
   return res.data;
 }
