@@ -1,8 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { AxiosError } from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { sendTextMessage } from "src/util/api/whatsapp";
-import axios from "axios";
+import { sendTextMessage } from "src/pages/api/utils/whatsapp";
 
 type Data = {
   name: string;

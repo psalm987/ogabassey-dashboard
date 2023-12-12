@@ -3,7 +3,7 @@ import OpenAI from "openai";
 import type { ThreadMessagesPage } from "openai/resources/beta/threads/messages/messages";
 import type { Run } from "openai/resources/beta/threads/runs/runs";
 import searchProduct from "./product";
-import rest from "../timer";
+import rest from "./timer";
 
 const assistantID = "asst_ll0e5xk5TP2JrxRVTWRf0nvz";
 const openai = new OpenAI();
