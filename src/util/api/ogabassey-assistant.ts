@@ -24,7 +24,7 @@ async function rest(time: number) {
 }
 
 async function checkRequiredAction(run: Run) {
-  const openai = new OpenAI();
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   if (run?.status === "requires_action" && run?.required_action) {
     const toolCalls = run.required_action.submit_tool_outputs.tool_calls;
     if (toolCalls) {
@@ -52,7 +52,7 @@ async function checkRequiredAction(run: Run) {
 
 async function createAndRetrieveRun(threadId: string) {
   const assistantID = "asst_ll0e5xk5TP2JrxRVTWRf0nvz";
-  const openai = new OpenAI();
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const run = await openai.beta.threads.runs.create(threadId, {
     assistant_id: assistantID,
   });
@@ -61,7 +61,7 @@ async function createAndRetrieveRun(threadId: string) {
 }
 
 async function reRun(run: Run) {
-  const openai = new OpenAI();
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   let runStep;
   let count = 0;
   while (
@@ -77,7 +77,7 @@ async function reRun(run: Run) {
 }
 
 async function retrieveMessagesFromThread(thread: string) {
-  const openai = new OpenAI();
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const result = await openai.beta.threads.messages.list(thread);
   return result;
 }
@@ -88,7 +88,7 @@ function extractMessage(response: ThreadMessagesPage) {
 }
 
 async function stopRunningThreadRuns(threadId: string) {
-  const openai = new OpenAI();
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const thread = await openai.beta.threads.runs.list(threadId);
   await Promise.all(
     thread.data.map(async (run) => {
@@ -104,7 +104,7 @@ export default async function makeConversation(
   message: string,
   threadId?: string
 ) {
-  const openai = new OpenAI();
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   let useThreadId;
   if (threadId) {
     // STOP ANY RUNS ON THE THREAD
