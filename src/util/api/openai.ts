@@ -1,8 +1,7 @@
 import OpenAI from "openai";
 
-const openai = new OpenAI();
-
 export const complete = async (message: string, instruction?: string) => {
+  const openai = new OpenAI();
   const completion = await openai.chat.completions.create({
     messages: [
       {

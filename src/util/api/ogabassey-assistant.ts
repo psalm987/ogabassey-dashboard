@@ -4,8 +4,6 @@ import OpenAI from "openai";
 import type { ThreadMessagesPage } from "openai/resources/beta/threads/messages/messages";
 import type { Run } from "openai/resources/beta/threads/runs/runs";
 
-const openai = new OpenAI();
-
 async function searchProduct(product: string) {
   // return await searchProducts({ query: product });
   const encodedProduct = encodeURIComponent(product);
@@ -21,13 +19,12 @@ const availableFunctions: {
   search_product: searchProduct,
 };
 
-const assistantID = "asst_ll0e5xk5TP2JrxRVTWRf0nvz";
-
 async function rest(time: number) {
   new Promise((resolve) => setTimeout(resolve, time));
 }
 
 async function checkRequiredAction(run: Run) {
+  const openai = new OpenAI();
   if (run?.status === "requires_action" && run?.required_action) {
     const toolCalls = run.required_action.submit_tool_outputs.tool_calls;
     if (toolCalls) {
@@ -54,6 +51,8 @@ async function checkRequiredAction(run: Run) {
 }
 
 async function createAndRetrieveRun(threadId: string) {
+  const assistantID = "asst_ll0e5xk5TP2JrxRVTWRf0nvz";
+  const openai = new OpenAI();
   const run = await openai.beta.threads.runs.create(threadId, {
     assistant_id: assistantID,
   });
@@ -62,6 +61,7 @@ async function createAndRetrieveRun(threadId: string) {
 }
 
 async function reRun(run: Run) {
+  const openai = new OpenAI();
   let runStep;
   let count = 0;
   while (
@@ -77,6 +77,7 @@ async function reRun(run: Run) {
 }
 
 async function retrieveMessagesFromThread(thread: string) {
+  const openai = new OpenAI();
   const result = await openai.beta.threads.messages.list(thread);
   return result;
 }
@@ -87,6 +88,7 @@ function extractMessage(response: ThreadMessagesPage) {
 }
 
 async function stopRunningThreadRuns(threadId: string) {
+  const openai = new OpenAI();
   const thread = await openai.beta.threads.runs.list(threadId);
   await Promise.all(
     thread.data.map(async (run) => {
@@ -102,6 +104,7 @@ export default async function makeConversation(
   message: string,
   threadId?: string
 ) {
+  const openai = new OpenAI();
   let useThreadId;
   if (threadId) {
     // STOP ANY RUNS ON THE THREAD
