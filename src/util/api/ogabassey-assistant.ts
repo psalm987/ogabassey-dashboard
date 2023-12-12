@@ -146,7 +146,7 @@ export default async function makeConversation(
   let useThreadId;
   if (threadId) {
     // STOP ANY RUNS ON THE THREAD
-    console.log("step 1");
+    console.log("step 1...", openaiAxios.defaults.headers.common);
     await stopRunningThreadRuns(threadId);
 
     // CONTINUE CONVERSATION
