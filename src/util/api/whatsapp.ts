@@ -9,7 +9,6 @@ const whatsappAxios = axios.create({
   headers: {
     Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
     "Content-Type": "application/json",
-    
   },
 });
 
@@ -42,7 +41,7 @@ export const markMessageRead = async (
   message_id: string,
   sender_id: string
 ) => {
-  return await whatsappAxios.post(`${sender_id}/messages`, {
+  return await whatsappAxios.post(`${whatsappSenderPhoneNumber}/messages`, {
     messaging_product: "whatsapp",
     status: "read",
     message_id,

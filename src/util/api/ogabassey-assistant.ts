@@ -1,51 +1,17 @@
 import { searchProducts } from "@db/utils/products";
+import axios from "axios";
 import { ThreadMessagesPage } from "openai/resources/beta/threads/messages/messages";
 import { Run } from "openai/resources/beta/threads/runs/runs";
-import {
-  RunStep,
-  RunStepsPage,
-} from "openai/resources/beta/threads/runs/steps";
+import { Thread } from "openai/resources/beta/threads/threads";
 import { openai } from "src/util/api/openai";
 
-type FunctionDecription = {
-  name: string;
-  description: string;
-  parameters: FunctionParameter;
-};
-
-type FunctionParameter = {
-  type: string;
-  properties: FunctionParametersProperties;
-  required: string[];
-};
-
-type FunctionParametersProperties = {
-  [key: string]: {
-    type: string;
-    description: string;
-  };
-};
-
-const functionDescriptions: FunctionDecription[] = [
-  {
-    name: "search_product",
-    description: "Get details about a gadget product from the API",
-    parameters: {
-      type: "object",
-      properties: {
-        product: {
-          type: "string",
-          description:
-            "Gadget that is being searched e.g Apple Series 6 44mm GPS or iPhone 12 Pro Max 128GB",
-        },
-      },
-      required: ["product"],
-    },
-  },
-];
-
 const search_product = async (product: string) => {
-  return await searchProducts({ query: product });
+  // return await searchProducts({ query: product });
+  const encodedProduct = encodeURIComponent(product);
+  const res = await axios.get(
+    `https://oga-bassey-22137.nodechef.com/api/v1/product/search?q=${encodedProduct}`
+  );
+  return res.data?.data;
 };
 
 const availableFunctions: {
@@ -58,23 +24,6 @@ const assistantID = "asst_ll0e5xk5TP2JrxRVTWRf0nvz";
 
 const rest = async (time: number) =>
   new Promise((resolve) => setTimeout(resolve, time));
-
-export const startConversation = async (message: string) => {
-  const thread = await openai.beta.threads.create({
-    messages: [
-      {
-        role: "user",
-        content: message,
-      },
-    ],
-  });
-
-  let run = await createAndRetrieveRun(thread.id);
-  const tookExtraAction = await checkRequiredAction(run!);
-  if (tookExtraAction && run) await reRun(run);
-  const result = await retrieveMessages(thread.id);
-  return { message: getMessage(result), threadId: thread.id };
-};
 
 const checkRequiredAction = async (run: Run) => {
   if (run?.status === "requires_action" && run?.required_action) {
@@ -89,7 +38,7 @@ const checkRequiredAction = async (run: Run) => {
         console.log("RESPONSE...", functionResponse);
         toolOutputs.push({
           tool_call_id: toolCall.id,
-          output: JSON.stringify(functionResponse?.[0]),
+          output: JSON.stringify(functionResponse?.[0] || null),
         });
       }
       if (toolOutputs.length)
@@ -114,7 +63,7 @@ const reRun = async (run: Run) => {
   let runStep;
   let count = 0;
   while (
-    (!runStep || ["qeued", "in_progress"].includes(runStep.status)) &&
+    (!runStep || ["queued", "in_progress"].includes(runStep.status)) &&
     count <= 10
   ) {
     console.log("Running session...", runStep?.status);
@@ -135,19 +84,47 @@ const getMessage = (response: ThreadMessagesPage) => {
   if (content?.type === "text") return content.text?.value;
 };
 
-export const continueConversation = async (
-  threadId: string,
-  message: string
-) => {
-  // TODO: call chat API
-  await openai.beta.threads.messages.create(threadId, {
-    role: "user",
-    content: message,
-  });
+const stopRunningThreadRuns = async (threadId: string) => {
+  const thread = await openai.beta.threads.runs.list(threadId);
+  await Promise.all(
+    thread.data.map(
+      async (run) =>
+        ["in_progress", "queued", "requires_action"].includes(run.status) &&
+        (await openai.beta.threads.runs.cancel(threadId, run.id))
+    )
+  );
+};
 
-  const run = await createAndRetrieveRun(threadId);
+export const makeConversation = async (message: string, threadId?: string) => {
+  let useThreadId;
+  if (threadId) {
+    // STOP ANY RUNS ON THE THREAD
+    await stopRunningThreadRuns(threadId);
+
+    // CONTINUE CONVERSATION
+    const createdMessage = await openai.beta.threads.messages.create(threadId, {
+      role: "user",
+      content: message,
+    });
+
+    useThreadId = createdMessage.thread_id;
+  } else {
+    // CREATE NEW CONVERSATION
+    const createdThread = await openai.beta.threads.create({
+      messages: [
+        {
+          role: "user",
+          content: message,
+        },
+      ],
+    });
+    useThreadId = createdThread.id;
+  }
+
+  // RUN CONVERSATION
+  let run = await createAndRetrieveRun(useThreadId);
   const tookExtraAction = await checkRequiredAction(run!);
   if (tookExtraAction && run) await reRun(run);
-  const result = await retrieveMessages(threadId);
-  return { message: getMessage(result), threadId };
+  const result = await retrieveMessages(useThreadId);
+  return { message: getMessage(result), threadId: useThreadId };
 };

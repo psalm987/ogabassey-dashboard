@@ -3,6 +3,7 @@ import { addSession, findSession } from "@db/utils/session";
 import type { NextApiRequest, NextApiResponse } from "next";
 import {
   continueConversation,
+  makeConversation,
   startConversation,
 } from "src/util/api/ogabassey-assistant";
 import { markMessageRead, sendTextMessage } from "src/util/api/whatsapp";
@@ -133,37 +134,52 @@ export default async function handler(
 
     switch (req.method) {
       case "POST":
+        console.info("CAll made...", body);
         const change = body.entry[0].changes?.[0] || {};
         if (change?.field !== "messages") {
           // not from the messages webhook so dont process
           return res.status(400);
         }
-        console.log("About to change: ", change);
-        let conversation;
+        console.info("About to change: ", change);
+
+        // RETRIEVE SENDER INFO
         const sender = getSender(change);
         if (sender) {
-          console.log("Pre echo sender:", sender);
-          change?.value?.messages?.[0]?.id &&
-            (await markMessageRead(change.value.messages[0].id, sender));
+          console.info("Pre echo sender:", sender);
+
+          // MARK MESSAGE AS READ
+          const messageId = change?.value?.messages?.[0]?.id;
+          messageId && (await markMessageRead(messageId, sender));
           const senderMessage = change.value.messages?.[0]?.text?.body;
           let session = await findSession({ userId: sender });
-          if (!session?.sessionId && session.source !== "WHATSAPP") {
-            conversation = await startConversation(senderMessage!);
-            const { threadId } = conversation;
+
+          console.info("SESSION...", session);
+
+          // GET  CONVERSATION RESPONSE
+          const conversation = await makeConversation(
+            senderMessage!,
+            session?.sessionId
+          );
+          console.info(conversation);
+
+          // PERSIST THREAD ID AS SESSION
+          if (!session)
             session = await addSession({
               userId: sender,
-              sessionId: threadId!,
+              sessionId: conversation.threadId!,
               source: "WHATSAPP",
             });
-          } else if (session?.sessionId && session.source !== "WHATSAPP") {
-            conversation = await continueConversation(
-              session?.sessionId,
-              senderMessage!
-            );
-          }
+
+          // SEND RESPONSE
           await sendTextMessage(conversation?.message!, sender);
-          console.log("Echoed");
+          console.info("Echoed");
+          return res
+            .status(200)
+            .json({ message: "Message delivered successfully!" });
         }
+        return res
+          .status(200)
+          .json({ message: "Status received successfully!" });
       case "GET":
         if (
           req.query["hub.verify_token"] === process.env.VERIFY_TOKEN! &&
