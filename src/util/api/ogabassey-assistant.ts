@@ -97,7 +97,10 @@ const stopRunningThreadRuns = async (threadId: string) => {
   );
 };
 
-export const makeConversation = async (message: string, threadId?: string) => {
+export default async function makeConversation(
+  message: string,
+  threadId?: string
+) {
   let useThreadId;
   if (threadId) {
     // STOP ANY RUNS ON THE THREAD
@@ -129,4 +132,4 @@ export const makeConversation = async (message: string, threadId?: string) => {
   if (tookExtraAction && run) await reRun(run);
   const result = await retrieveMessages(useThreadId);
   return { message: getMessage(result), threadId: useThreadId };
-};
+}
