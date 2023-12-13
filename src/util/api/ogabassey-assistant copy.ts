@@ -6,10 +6,17 @@ import type {
 import type { Run, RunsPage } from "openai/resources/beta/threads/runs/runs";
 import searchProduct from "./product";
 import rest from "./timer";
+import axios from "axios";
 import { Thread } from "openai/resources/beta/threads/threads";
-import OpenAI from "openai";
 
-const openai = new OpenAI();
+const openaiAxios = axios.create({
+  baseURL: "https://api.openai.com/v1/",
+  headers: {
+    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    "OpenAI-Organization": "org-LloRHUNuyevC1m6mbEDMTwmM",
+    "OpenAI-Beta": "assistants=v1",
+  },
+});
 
 const assistantID = "asst_ll0e5xk5TP2JrxRVTWRf0nvz";
 const availableFunctions: {
@@ -19,62 +26,60 @@ const availableFunctions: {
 };
 
 async function createRun(thread_id: string): Promise<Run> {
-  const run = await openai.beta.threads.runs.create(thread_id, {
+  const res = await openaiAxios.post(`threads/${thread_id}/runs`, {
     assistant_id: assistantID,
   });
-  console.log("Created run...", run);
-  return run;
+
+  console.log("Created run...", res.data);
+  return res.data;
 }
 
 async function retrieveRun(thread_id: string, run_id: string): Promise<Run> {
-  const run = await openai.beta.threads.runs.retrieve(thread_id, run_id);
-  return run;
+  const res = await openaiAxios.get(`threads/${thread_id}/runs/${run_id}`);
+  return res.data;
 }
 
 async function listRuns(thread_id: string): Promise<RunsPage> {
-  const runs = await openai.beta.threads.runs.list(thread_id);
-  return runs;
+  const res = await openaiAxios.get(`threads/${thread_id}/runs`);
+  return res.data;
 }
 
 async function cancelRun(thread_id: string, run_id: string) {
-  const run = await openai.beta.threads.runs.cancel(thread_id, run_id);
-  return run;
+  const res = await openaiAxios.get(
+    `threads/${thread_id}/runs/${run_id}/cancel`
+  );
+  return res.data;
 }
 
 async function submitToolOutputsToRun(
   thread_id: string,
   run_id: string,
-  tool_outputs: OpenAI.Beta.Threads.Runs.RunSubmitToolOutputsParams.ToolOutput[]
+  tool_outputs: any[]
 ): Promise<Run> {
-  const run = await openai.beta.threads.runs.submitToolOutputs(
-    thread_id,
-    run_id,
+  const res = await openaiAxios.post(
+    `threads/${thread_id}/runs/${run_id}/submit_tool_outputs`,
     {
-      tool_outputs: tool_outputs,
+      tool_outputs: assistantID,
     }
   );
-  return run;
+
+  return res.data;
 }
 
 async function listMessages(thread_id: string): Promise<ThreadMessagesPage> {
-  const threadMessages = await openai.beta.threads.messages.list(thread_id);
-  return threadMessages;
+  const res = await openaiAxios.get(`threads/${thread_id}/messages`);
+  return res.data;
 }
-
 async function createMessage(
   thread_id: string,
-  body: OpenAI.Beta.Threads.Messages.MessageCreateParams
+  body: any
 ): Promise<ThreadMessage> {
-  const threadMessages = await openai.beta.threads.messages.create(
-    thread_id,
-    body
-  );
-  return threadMessages;
+  const res = await openaiAxios.post(`threads/${thread_id}/messages`, body);
+  return res.data;
 }
-
 async function createThread(body: any): Promise<Thread> {
-  const emptyThread = await openai.beta.threads.create();
-  return emptyThread;
+  const res = await openaiAxios.post(`threads`, body);
+  return res.data;
 }
 
 async function checkRequiredAction(run: Run) {
@@ -144,7 +149,7 @@ export default async function makeConversation(
   let useThreadId;
   if (threadId) {
     // STOP ANY RUNS ON THE THREAD
-    console.log("step 1...");
+    console.log("step 1...", openaiAxios.defaults.headers);
     await stopRunningThreadRuns(threadId);
 
     // CONTINUE CONVERSATION
