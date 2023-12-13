@@ -37,8 +37,14 @@ async function listRuns(thread_id: string): Promise<RunsPage> {
 }
 
 async function cancelRun(thread_id: string, run_id: string) {
-  const run = await openai.beta.threads.runs.cancel(thread_id, run_id);
-  return run;
+  try {
+    const run = await openai.beta.threads.runs.cancel(thread_id, run_id);
+    return run;
+  } catch (error: any) {
+    if (!error?.message?.includes?.("complete")) {
+      throw error;
+    }
+  }
 }
 
 async function submitToolOutputsToRun(
@@ -178,5 +184,6 @@ export default async function makeConversation(
   if (tookExtraAction && run) await reRun(run);
   console.log("step 6");
   const result = await listMessages(useThreadId);
+  console.log("step 7", result);
   return { message: extractMessage(result), threadId: useThreadId };
 }
