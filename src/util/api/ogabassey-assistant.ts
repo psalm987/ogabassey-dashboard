@@ -11,6 +11,29 @@ import OpenAI from "openai";
 
 const openai = new OpenAI();
 
+const fallbackMessages = [
+  "Hmm, that one stumped me  Could you try rephrasing your question?",
+  "I'm not sure I understand what you mean  Can you try explaining it differently?",
+  "Looks like I need a little more information to help you  Can you provide some details?",
+  "My brain is spinning  I need a break to process your request. Can you try again in a few seconds?",
+  "I'm still learning  Would you mind rephrasing your question in simpler terms?",
+  "I'm having trouble understanding the context  Can you give me more background information?",
+  "My circuits are fried  Can you try asking your question in a different way?",
+  "Oops, I need more coffee ☕️ Can you please rephrase your request?",
+  "I'm a bit confused ‍ Can you give me some examples?",
+  "Help! I'm drowning in information  Can you try simplifying your question?",
+  "My gears are grinding ⚙️ Give me a moment to process your request.",
+  "My mind is a blank canvas  Can you provide more details to paint a clearer picture?",
+  "I'm not familiar with that  Can you explain it like I'm five?",
+  "My apologies, I need more time to learn  Can you try again later?",
+  "Let's switch gears for a second ️ Can you rephrase your question using different keywords?",
+  "My vocabulary is limited  Can you use simpler words?",
+  "I need a little more direction  Can you give me specific instructions?",
+  "Let's break down your request into smaller pieces  Can you provide one part at a time?",
+  "My memory is a bit fuzzy  Can you refresh my memory with some context?",
+  "Time for a brain reset!  Can you try asking your question again?",
+];
+
 const assistantID = "asst_ll0e5xk5TP2JrxRVTWRf0nvz";
 const availableFunctions: {
   [key: string]: any;
@@ -84,6 +107,7 @@ async function createThread(body: any): Promise<Thread> {
 }
 
 async function checkRequiredAction(run: Run) {
+  console.log(run?.status);
   if (run?.status === "requires_action" && run?.required_action) {
     const toolCalls = run.required_action.submit_tool_outputs.tool_calls;
     if (toolCalls) {
@@ -128,6 +152,7 @@ async function reRun(run: Run) {
 
 function extractMessage(response: ThreadMessagesPage) {
   const content = response?.data?.[0]?.content?.[0];
+  console.log("MESSAGE>>> ", response?.data?.[0]?.content?.[0]);
   if (content?.type === "text") return content.text?.value;
 }
 
@@ -143,47 +168,64 @@ async function stopRunningThreadRuns(threadId: string) {
   );
 }
 
+function getRandomFallbackMessage() {
+  const randomIndex = Math.floor(Math.random() * fallbackMessages.length);
+  return fallbackMessages[randomIndex];
+}
+
 export default async function makeConversation(
   message: string,
   threadId?: string
 ) {
-  let useThreadId;
-  if (threadId) {
-    // STOP ANY RUNS ON THE THREAD
-    console.log("step 1...");
-    await stopRunningThreadRuns(threadId);
+  try {
+    let useThreadId;
+    if (threadId) {
+      // STOP ANY RUNS ON THE THREAD
+      console.log("step 1...");
+      await stopRunningThreadRuns(threadId);
 
-    // CONTINUE CONVERSATION
-    console.log("step 2");
-    const createdMessage = await createMessage(threadId, {
-      role: "user",
-      content: message,
-    });
+      // CONTINUE CONVERSATION
+      console.log("step 2");
+      const createdMessage = await createMessage(threadId, {
+        role: "user",
+        content: message,
+      });
 
-    useThreadId = createdMessage.thread_id;
-  } else {
-    // CREATE NEW CONVERSATION
-    console.log("step 3");
-    const createdThread = await createThread({
-      messages: [
-        {
-          role: "user",
-          content: message,
-        },
-      ],
-    });
-    useThreadId = createdThread.id;
+      useThreadId = createdMessage.thread_id;
+    } else {
+      // CREATE NEW CONVERSATION
+      console.log("step 3");
+      const createdThread = await createThread({
+        messages: [
+          {
+            role: "user",
+            content: message,
+          },
+        ],
+      });
+      useThreadId = createdThread.id;
+    }
+
+    // RUN CONVERSATION
+
+    console.log("step 4");
+    let run = await createAndRetrieveRun(useThreadId);
+    console.log("step 5");
+    const tookExtraAction = await checkRequiredAction(run!);
+    if (tookExtraAction && run) await reRun(run);
+    console.log("step 6");
+    const result = await listMessages(useThreadId);
+    console.log("step 7", result);
+
+    return {
+      message: extractMessage(result) || getRandomFallbackMessage(),
+      threadId: useThreadId,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      message: getRandomFallbackMessage(),
+      threadId: threadId,
+    };
   }
-
-  // RUN CONVERSATION
-
-  console.log("step 4");
-  let run = await createAndRetrieveRun(useThreadId);
-  console.log("step 5");
-  const tookExtraAction = await checkRequiredAction(run!);
-  if (tookExtraAction && run) await reRun(run);
-  console.log("step 6");
-  const result = await listMessages(useThreadId);
-  console.log("step 7", result);
-  return { message: extractMessage(result), threadId: useThreadId };
 }
