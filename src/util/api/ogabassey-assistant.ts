@@ -45,7 +45,6 @@ async function createRun(thread_id: string): Promise<Run> {
   const run = await openai.beta.threads.runs.create(thread_id, {
     assistant_id: assistantID,
   });
-  console.log("Created run...", run);
   return run;
 }
 
@@ -107,7 +106,6 @@ async function createThread(body: any): Promise<Thread> {
 }
 
 async function checkRequiredAction(run: Run) {
-  console.log(run?.status);
   if (run?.status === "requires_action" && run?.required_action) {
     const toolCalls = run.required_action.submit_tool_outputs.tool_calls;
     if (toolCalls) {
@@ -117,14 +115,21 @@ async function checkRequiredAction(run: Run) {
         const functionToCall = availableFunctions[functionName];
         const functionArgs = JSON.parse(toolCall.function.arguments);
         const functionResponse = await functionToCall(functionArgs.product);
-        console.log("RESPONSE...", functionResponse);
+
+        let product;
+        try {
+          product = JSON.stringify(functionResponse?.[0] || null);
+        } catch (error) {
+          product = JSON.stringify(null);
+        }
         toolOutputs.push({
           tool_call_id: toolCall.id,
-          output: JSON.stringify(functionResponse?.[0] || null),
+          output: product,
         });
       }
       if (toolOutputs.length) {
-        return await submitToolOutputsToRun(run.thread_id, run.id, toolOutputs);
+        await submitToolOutputsToRun(run.thread_id, run.id, toolOutputs);
+        await reRun(run);
       }
     }
   }
@@ -137,23 +142,25 @@ async function createAndRetrieveRun(threadId: string) {
 
 async function reRun(run: Run) {
   let runStep;
-  let count = 0;
-  while (
-    (!runStep || ["queued", "in_progress"].includes(runStep.status)) &&
-    count <= 10
-  ) {
-    console.log("Running session...", runStep?.status);
+  // let count = 0;
+  while (!runStep || ["queued", "in_progress"].includes(runStep.status)) {
     runStep = await retrieveRun(run.thread_id, run.id);
-    count++;
+    // count++;
     await rest(1);
+  }
+
+  if (runStep?.status === "requires_action") {
+    const messages = await listMessages(runStep.thread_id);
   }
   return runStep;
 }
 
 function extractMessage(response: ThreadMessagesPage) {
   const content = response?.data?.[0]?.content?.[0];
-  console.log("MESSAGE>>> ", response?.data?.[0]?.content?.[0]);
-  if (content?.type === "text") return content.text?.value;
+
+  if (content?.type === "text" && response?.data?.[0]?.role === "assistant")
+    return content.text?.value;
+  return getRandomFallbackMessage();
 }
 
 async function stopRunningThreadRuns(threadId: string) {
@@ -161,8 +168,7 @@ async function stopRunningThreadRuns(threadId: string) {
   await Promise.all(
     thread?.data?.map(async (run) => {
       run?.status !== "completed" &&
-        console.log("Running status...", run?.status);
-      ["in_progress", "queued", "requires_action"].includes(run.status) &&
+        ["in_progress", "queued"].includes(run.status) &&
         (await cancelRun(threadId, run.id));
     })
   );
@@ -180,12 +186,19 @@ export default async function makeConversation(
   try {
     let useThreadId;
     if (threadId) {
+      const prevRuns = await listRuns(threadId);
+      Promise.all(
+        prevRuns.data.map(
+          async (run) =>
+            run.status === "requires_action" && (await checkRequiredAction(run))
+        )
+      );
       // STOP ANY RUNS ON THE THREAD
-      console.log("step 1...");
+
       await stopRunningThreadRuns(threadId);
 
       // CONTINUE CONVERSATION
-      console.log("step 2");
+
       const createdMessage = await createMessage(threadId, {
         role: "user",
         content: message,
@@ -194,7 +207,7 @@ export default async function makeConversation(
       useThreadId = createdMessage.thread_id;
     } else {
       // CREATE NEW CONVERSATION
-      console.log("step 3");
+
       const createdThread = await createThread({
         messages: [
           {
@@ -208,14 +221,11 @@ export default async function makeConversation(
 
     // RUN CONVERSATION
 
-    console.log("step 4");
     let run = await createAndRetrieveRun(useThreadId);
-    console.log("step 5");
-    const tookExtraAction = await checkRequiredAction(run!);
-    if (tookExtraAction && run) await reRun(run);
-    console.log("step 6");
+
+    await checkRequiredAction(run!);
+
     const result = await listMessages(useThreadId);
-    console.log("step 7", result);
 
     return {
       message: extractMessage(result) || getRandomFallbackMessage(),

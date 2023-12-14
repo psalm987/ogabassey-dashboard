@@ -114,10 +114,10 @@ const getSender = (change: {
   } else if (change?.value?.messages) {
     return change?.value?.messages?.[0]?.from;
   } else if (change?.value?.statuses) {
-    console.log(
-      "Statuses: ",
-      change?.value?.statuses.map((stat) => stat)
-    );
+    // console.log(
+    //   "Statuses: ",
+    //   change?.value?.statuses.map((stat) => stat)
+    // );
   }
 };
 
@@ -130,26 +130,21 @@ export default async function handler(
 
     switch (req.method) {
       case "POST":
-        console.info("CAll made...", body);
         const change = body.entry[0].changes?.[0] || {};
+
         if (change?.field !== "messages") {
           // not from the messages webhook so dont process
           return res.status(400);
         }
-        console.info("About to change: ", change);
 
         // RETRIEVE SENDER INFO
         const sender = getSender(change);
         if (sender) {
-          console.info("Pre echo sender:", sender);
-
           // MARK MESSAGE AS READ
           const messageId = change?.value?.messages?.[0]?.id;
           messageId && (await markMessageRead(messageId, sender));
           const senderMessage = change.value.messages?.[0]?.text?.body;
           let session = await findSession({ userId: sender });
-
-          console.info("SESSION...", session);
 
           // GET  CONVERSATION RESPONSE
           const conversation = await makeConversation(
@@ -158,7 +153,6 @@ export default async function handler(
           );
 
           // const conversation = { message: senderMessage };
-          console.info(conversation);
 
           // PERSIST THREAD ID AS SESSION
           if (!session)
@@ -170,7 +164,7 @@ export default async function handler(
 
           // SEND RESPONSE
           await sendTextMessage(conversation?.message!, sender);
-          console.info("Echoed");
+
           return res
             .status(200)
             .json({ message: "Message delivered successfully!" });
