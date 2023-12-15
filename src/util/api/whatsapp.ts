@@ -37,6 +37,16 @@ export const sendTextMessage = async (message: string, to: string) => {
   });
 };
 
+export const sendCustomMessage = async (message: any, to: string) => {
+  console.log("MESSAGE RESPONSE...", message);
+  return await whatsappAxios.post(`${whatsappSenderPhoneNumber}/messages`, {
+    messaging_product: "whatsapp",
+    recipient_type: "individual",
+    to,
+    ...message,
+  });
+};
+
 export const markMessageRead = async (
   message_id: string,
   sender_id: string
