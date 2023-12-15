@@ -148,8 +148,6 @@ export default async function handler(
         // RETRIEVE SENDER INFO
         const sender = getSender(change);
 
-        console.log(sender);
-
         if (sender) {
           // MARK MESSAGE AS READ
           const messageId = change?.value?.messages?.[0]?.id;
@@ -163,16 +161,12 @@ export default async function handler(
             content: senderMessage,
           });
 
-          console.log(userMessage);
-
           await userMessage.save();
 
           const messageHistory = await message
             .find({ user: sender })
             .select("-user -source -createdAt -updatedAt -tool_calls -__v -_id")
             .sort("createdAt");
-
-          console.log("Message History...", messageHistory);
 
           // GET  CONVERSATION RESPONSE
           const conversation = await makeConversation(messageHistory);
@@ -216,7 +210,6 @@ export default async function handler(
       console.error(error.response.data);
       console.error(error.response.status);
       console.error(error.response.headers);
-      console.error(error.request.body);
     } else if (error.request) {
       console.error(error.request);
     } else {

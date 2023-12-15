@@ -102,12 +102,10 @@ async function checkToolcalls(
 ) {
   const toolCalls = response.tool_calls;
   if (toolCalls) {
-    console.log("There's toolcalls");
     // Step 3: call the function
     // Note: the JSON response may not always be valid; be sure to handle errors
     messages.push(response); // extend conversation with assistant's reply
     for (const toolCall of toolCalls) {
-      console.log("There's toolcalls", toolCall.function);
       const functionName = toolCall.function.name;
       const functionToCall = availableFunctions[functionName];
       const functionArgs = JSON.parse(toolCall.function.arguments);
@@ -126,8 +124,6 @@ async function checkToolcalls(
         name: functionName,
         content,
       }); // extend conversation with function response
-
-      console.log("RESOLVED FUNCTION...", messages[messages.length - 1]);
     }
     const secondResponse = await respond(messages);
     return secondResponse;
@@ -143,13 +139,9 @@ export default async function makeConversation(
       chatbotInstruction,
       ...messageHistory,
     ];
-    console.log("\n\n\nMessages...", messages);
     const firstResponse = await respond(messages);
-    console.log("\n\n\n\nFirst response...", firstResponse);
     const secondResponse = await checkToolcalls(firstResponse, messages);
-    console.log("\n\n\n\n\n\nSecond response...", secondResponse);
     const response = secondResponse?.content || firstResponse?.content;
-    console.log("\n\n\n\n\n\n response...", response);
     if (!response) {
       throw new Error("No response message fron the chat API");
     }
