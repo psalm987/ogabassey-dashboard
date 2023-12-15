@@ -142,11 +142,14 @@ async function createAndRetrieveRun(threadId: string) {
 
 async function reRun(run: Run) {
   let runStep;
-  // let count = 0;
-  while (!runStep || ["queued", "in_progress"].includes(runStep.status)) {
+  let count = 0;
+  while (
+    (!runStep || ["queued", "in_progress"].includes(runStep.status)) &&
+    count <= 30
+  ) {
     runStep = await retrieveRun(run.thread_id, run.id);
-    // count++;
-    await rest(1);
+    count++;
+    await rest(1.5);
   }
 
   if (runStep?.status === "requires_action") {
