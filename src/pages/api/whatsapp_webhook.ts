@@ -164,9 +164,16 @@ export default async function handler(
           await userMessage.save();
 
           const messageHistory = await message
-            .find({ user: sender })
+            .find({
+              user: sender,
+              source: "WHATSAPP",
+              createdAt: {
+                $gte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+              },
+            })
             .select("-user -source -createdAt -updatedAt -tool_calls -__v -_id")
-            .sort("createdAt");
+            .sort("createdAt")
+            .limit(30);
 
           // GET  CONVERSATION RESPONSE
           const conversation = await makeConversation(messageHistory);
