@@ -17,9 +17,6 @@ const MessagesSchema = new Schema(
     },
     content: {
       type: String,
-      or: {
-        type: Schema.Types.Array,
-      },
     },
     // name: String,
     // tool_calls: Schema.Types.Array,

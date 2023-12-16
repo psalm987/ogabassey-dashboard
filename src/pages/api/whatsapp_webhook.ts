@@ -189,13 +189,36 @@ export default async function handler(
           await assistantResponse.save();
 
           // const response = JSON.parse(conversation);
+          console.log(conversation);
+
+          let response;
+          try {
+            response = JSON.parse(conversation);
+          } catch (error: any) {
+            console.error(error);
+            if (error?.message?.includes?.("Unexpected non-whitespace")) {
+              response = JSON.parse(
+                conversation?.slice(0, conversation?.length / 2)
+              );
+            }
+          }
 
           // SEND RESPONSE
-          await sendTextMessage(conversation, sender);
+          await sendCustomMessage(
+            {
+              ...response,
+              context: change?.value?.messages?.[0]?.id && {
+                message_id: change?.value?.messages?.[0]?.id,
+              },
+            },
+            sender
+          );
 
-          return res
-            .status(200)
-            .json({ message: "Message delivered successfully!" });
+          return res.status(200).json({
+            message: "Message delivered successfully!",
+            conversation: response,
+            sender,
+          });
         }
         return res
           .status(200)

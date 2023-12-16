@@ -31,8 +31,7 @@ const fallbackMessages = [
   "Time for a brain reset!  Can you try asking your question again?",
 ];
 
-const chatbotInstruction = {
-  name: "Ogabassey",
+const chatbotInstruction: ChatCompletionMessageParam = {
   role: "system",
   content: `You are a client facing chatbot called Ogabassey which handles complaints, checking availability of gadgets, purchases and general enquiries.
   Respond to questions as if you are a staff of Ogabassey - which is also a #1 gadget store. Use a friendly, sometimes humorous tone, also use emojis during conversations as often as possible. Company taglines which can be used during conversation include - ”Ogabassey dey for you!”. If there is a question or task you cannot handle, ask the user to contact a human agent by call or contact on Whatsapp on +2348146978921. Official website is https://ogabassey.com/
@@ -49,6 +48,63 @@ const chatbotInstruction = {
   - Is coming to the office necessary to submit documents?: We no like stress. Stay wherever you are and shop from Ogabassey. In Full or instalments we’d deliver that device to you.
   - I got Rejected. Can i pay to you directly? No. we don’t accept cash payments for instalments
   - What locations can you deliver to?\t We deliver globally. We deliver to your doorstep wherever you are.`,
+};
+
+const responseInstructions: ChatCompletionMessageParam = {
+  role: "system",
+  content: `All completion responses must be returned in a JSON format of a response message payload to send messages on WhatsApp business cloud API.
+When a response is generated, you should:
+ - Analyse all the available response formats and 
+ - Reproduce the response in the addequate format if the current format is not the best way to represent the response
+
+  Here are some examples of valid responses:
+
+  - A simple text based response that says "Hello! This is an example text message" with no links to preview would be returned as as:
+  {
+  "type": "text",
+  "text": {
+    "preview_url": false,
+    "body": "Hello! This is an example text message."
+  }
+  }
+
+  - To preview an image, include the link as the first link in the body parameter in the text based response and make preview_url true.
+
+  - If the body parameter in a text based responese has a link, set the preview_url parameter to true.
+
+  - An interactive response prompting users to "Choose an option" from 2 button options ("Red" and "Green") for the user to select would be returned as as:
+  {
+    "type": "interactive",
+  "interactive": {
+    "type": "button",
+    "header": {
+      "type": "text",
+      "text": "Choose an option:"
+    },
+    "body": {
+      "text": "Pick a color:"
+    },
+    "action": {
+      "buttons": [
+        {
+          "type": "reply",
+          "reply": {
+            "id": "1",
+            "title": "Red"
+          }
+        },
+        {
+          "type": "reply",
+          "reply": {  
+            "id": "2",
+            "title": "Green"
+          }
+        }
+      ]    
+    }
+  }
+  }
+  `,
 };
 
 const tools: ChatCompletionTool[] = [
@@ -90,7 +146,7 @@ async function respond(messages: ChatCompletionMessageParam[]) {
     messages: messages,
     tools: tools,
     tool_choice: "auto", // auto is default, but we'll be explicit
-    // response_format: { type: "json_object" },
+    response_format: { type: "json_object" },
   });
   const responseMessage = response.choices[0].message;
   return responseMessage;
@@ -117,6 +173,8 @@ async function checkToolcalls(
       } catch (error) {
         content = JSON.stringify(null);
       }
+
+      console.log(functionResponse);
       messages.push({
         tool_call_id: toolCall.id,
         role: "tool",
@@ -137,6 +195,7 @@ export default async function makeConversation(
     const messages: ChatCompletionMessageParam[] = [
       // @ts-ignore
       chatbotInstruction,
+      responseInstructions,
       ...messageHistory,
     ];
     const firstResponse = await respond(messages);
