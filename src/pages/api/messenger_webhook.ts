@@ -7,7 +7,6 @@ import {
   sendCustomMessage,
   sendTextMessage,
 } from "../../util/api/whatsapp";
-import message from "@db/models/message";
 import connectDb from "@db/config";
 
 connectDb();
@@ -83,22 +82,21 @@ type WebhookData = {
   entry: [
     {
       id: string;
-      changes: [
-        {
-          value: {
-            messaging_product: "whatsapp";
-            metadata: {
-              display_phone_number: string;
-              phone_number_id: string;
-            };
-            messages?: WebhookMessage[];
-            contacts?: WebhookContact[];
-            errors?: WebhookError[];
-            statuses?: WebhookStatus[];
-          };
-          field: "messages" | string;
-        }
-      ];
+      messaging: any[];
+      // {
+      //   value: {
+      //     messaging_product: "messenger";
+      //     metadata: {
+      //       display_phone_number: string;
+      //       phone_number_id: string;
+      //     };
+      //     messages?: WebhookMessage[];
+      //     contacts?: WebhookContact[];
+      //     errors?: WebhookError[];
+      //     statuses?: WebhookStatus[];
+      //   };
+      //   field: "messages" | string;
+      // }
     }
   ];
 };
@@ -138,9 +136,9 @@ export default async function handler(
 
     switch (req.method) {
       case "POST":
-       console.log(body);
-        return res
-          .status(200)
+        console.log(body);
+        console.log(body?.entry?.[0]?.messaging);
+        return res.status(200);
       case "GET":
         if (
           req.query["hub.verify_token"] === process.env.VERIFY_TOKEN! &&
