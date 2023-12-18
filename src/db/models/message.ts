@@ -11,6 +11,8 @@ type MessageProps = {
   source: "WHATSAPP" | "MESSENGER";
   createdAt: string;
   updatedAt: string;
+  tool_calls?: any[];
+  name?: string;
 };
 
 const MessagesSchema = new Schema<MessageProps>(
@@ -27,9 +29,8 @@ const MessagesSchema = new Schema<MessageProps>(
     content: {
       type: String,
     },
-    // name: String,
-    // tool_calls: Schema.Types.Array,
-    // tool_call_id: String,
+    name: { type: String, default: undefined },
+    tool_calls: { type: Schema.Types.Array, default: undefined },
     source: {
       type: String,
       enum: ["WHATSAPP", "MESSENGER"],

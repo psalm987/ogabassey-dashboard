@@ -104,6 +104,12 @@ async function checkToolcalls(
     // Step 3: call the function
     // Note: the JSON response may not always be valid; be sure to handle errors
     messages.push(response); // extend conversation with assistant's reply
+    await new Message({
+      ...response,
+      source,
+      user: sender,
+      content: JSON.stringify(response.content || null),
+    }).save();
     for (const toolCall of toolCalls) {
       const functionName = toolCall.function.name;
       const functionToCall = availableFunctions[functionName];
