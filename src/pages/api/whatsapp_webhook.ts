@@ -7,7 +7,7 @@ import {
   sendCustomMessage,
   sendTextMessage,
 } from "../../util/api/whatsapp";
-import message from "@db/models/message";
+import Message from "@db/models/message";
 import connectDb from "@db/config";
 
 connectDb();
@@ -154,7 +154,7 @@ export default async function handler(
           messageId && (await markMessageRead(messageId, sender));
           const senderMessage = change.value.messages?.[0]?.text?.body;
 
-          const userMessage = new message({
+          const userMessage = new Message({
             source: "WHATSAPP",
             user: sender,
             role: "user",
@@ -163,23 +163,25 @@ export default async function handler(
 
           await userMessage.save();
 
-          const messageHistory = await message
-            .find({
-              user: sender,
-              source: "WHATSAPP",
-              createdAt: {
-                $gte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-              },
-            })
+          const messageHistory = await Message.find({
+            user: sender,
+            source: "WHATSAPP",
+            createdAt: {
+              $gte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+            },
+          })
             .select("-user -source -createdAt -updatedAt -tool_calls -__v -_id")
             .sort("createdAt")
             .limit(30);
 
           // GET  CONVERSATION RESPONSE
-          const conversation = await makeConversation(messageHistory);
+          const conversation = await makeConversation(
+            messageHistory,
+            "WHATSAPP"
+          );
 
           // PERSIST RESPONSE MESSAGE
-          const assistantResponse = new message({
+          const assistantResponse = new Message({
             source: "WHATSAPP",
             user: sender,
             role: "assistant",

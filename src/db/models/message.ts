@@ -4,7 +4,16 @@ const { Schema } = mongoose;
 
 mongoose.Promise = global.Promise;
 
-const MessagesSchema = new Schema(
+type MessageProps = {
+  user: string;
+  role: "system" | "user" | "assistant" | "tool" | "function";
+  content: string;
+  source: "WHATSAPP" | "MESSENGER";
+  createdAt: string;
+  updatedAt: string;
+};
+
+const MessagesSchema = new Schema<MessageProps>(
   {
     user: {
       type: String,
@@ -23,7 +32,7 @@ const MessagesSchema = new Schema(
     // tool_call_id: String,
     source: {
       type: String,
-      enum: ["WHATSAPP"],
+      enum: ["WHATSAPP", "MESSENGER"],
       required: true,
     },
   },
