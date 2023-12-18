@@ -112,7 +112,7 @@ export default async function handler(
     if (error.response) {
       console.error(error.response.data);
       console.error(error.response.status);
-      console.error(error.response.headers);
+      // console.error(error.response.headers);
     } else if (error.request) {
       console.error(error.request);
     } else {

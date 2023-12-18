@@ -11,7 +11,7 @@ import {
   ChatCompletionMessageParam,
   ChatCompletionTool,
 } from "openai/resources";
-import { messengerHandoverToPage } from "./messenger";
+import { messengerHandoverToPage, sendTextMessage } from "./messenger";
 
 const openai = new OpenAI();
 
@@ -107,23 +107,32 @@ async function checkToolcalls(
       const functionName = toolCall.function.name;
       const functionToCall = availableFunctions[functionName];
       const functionArgs = JSON.parse(toolCall.function.arguments);
-      let content = null;
+      let content;
+      let functionResponse;
 
       switch (functionName) {
         case "search_product":
-          const functionResponse = await functionToCall(functionArgs.product);
-          console.log(functionResponse);
-          try {
-            content = JSON.stringify(functionResponse?.[0] || null);
-          } catch (error) {
-            content = JSON.stringify(null);
-          }
+          functionResponse = await functionToCall(functionArgs.product);
           break;
         case "messenger_handover":
-          await functionToCall(sender);
+          await sendTextMessage(
+            "You're being transferred to a human agent.",
+            sender
+          );
+          functionResponse = await functionToCall(sender);
           break;
         default:
           break;
+      }
+
+      try {
+        content = JSON.stringify(
+          Array.isArray(functionResponse)
+            ? functionResponse?.[0]
+            : functionResponse
+        );
+      } catch (error) {
+        content = JSON.stringify(null);
       }
 
       messages.push({
@@ -172,7 +181,7 @@ export default async function makeConversation(
     if (error.response) {
       console.error(error.response.data);
       console.error(error.response.status);
-      console.error(error.response.headers);
+      // console.error(error.response.headers);
     } else if (error.request) {
       console.error(error.request);
     } else {
