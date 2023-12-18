@@ -168,8 +168,16 @@ export default async function makeConversation(
       throw new Error("No response message fron the chat API");
     }
     return response;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    if (error.response) {
+      console.error(error.response.data);
+      console.error(error.response.status);
+      console.error(error.response.headers);
+    } else if (error.request) {
+      console.error(error.request);
+    } else {
+      console.error("Error", error.message);
+    }
     return getRandomFallbackMessage();
   }
 }
