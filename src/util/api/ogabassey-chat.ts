@@ -1,6 +1,7 @@
 import {
   CHATBOT_INSTRUCTIONS,
   FALLBACK_MESSAGES,
+  MESSENGER_RESPONSE_INSTRUCTIONS,
   WHATSAPP_RESPONSE_INSTRUCTIONS,
 } from "./../constants/chat";
 import OpenAI from "openai";
@@ -10,13 +11,16 @@ import {
   ChatCompletionMessageParam,
   ChatCompletionTool,
 } from "openai/resources";
+import { messengerHandoverToPage } from "./messenger";
 
 const openai = new OpenAI();
 
-const getSourceResponseInstructions = (source: "WHATSAPP" | "MESSENGER") => {
+const getSourceResponseInstructions = (source: SourcesProps) => {
   switch (source) {
     case "WHATSAPP":
       return WHATSAPP_RESPONSE_INSTRUCTIONS;
+    case "MESSENGER":
+      return MESSENGER_RESPONSE_INSTRUCTIONS;
     default:
       return undefined;
       break;
@@ -45,10 +49,22 @@ const tools: ChatCompletionTool[] = [
   },
 ];
 
+const messenger_tools: ChatCompletionTool[] = [
+  {
+    type: "function",
+    function: {
+      name: "messenger_handover",
+      description: "Transfer conversation to a live agent.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+];
+
 const availableFunctions: {
   [key: string]: any;
 } = {
   search_product: searchProduct,
+  messenger_handover: messengerHandoverToPage,
 };
 
 function getRandomFallbackMessage() {
@@ -58,12 +74,16 @@ function getRandomFallbackMessage() {
 
 async function respond(
   messages: ChatCompletionMessageParam[],
-  isJSON: boolean
+  isJSON: boolean,
+  source: SourcesProps
 ) {
+  const completionTools = [...tools];
+  if (source === "MESSENGER") completionTools.push(...messenger_tools);
+
   const response = await openai.chat.completions.create({
     model: "gpt-3.5-turbo-1106",
     messages: messages,
-    tools: tools,
+    tools: completionTools,
     tool_choice: "auto", // auto is default, but we'll be explicit
     response_format: isJSON ? { type: "json_object" } : undefined,
   });
@@ -74,7 +94,8 @@ async function respond(
 async function checkToolcalls(
   response: ChatCompletionMessage,
   messages: ChatCompletionMessageParam[],
-  isJSON: boolean
+  isJSON: boolean,
+  source: SourcesProps
 ) {
   const toolCalls = response.tool_calls;
   if (toolCalls) {
@@ -85,16 +106,25 @@ async function checkToolcalls(
       const functionName = toolCall.function.name;
       const functionToCall = availableFunctions[functionName];
       const functionArgs = JSON.parse(toolCall.function.arguments);
-      const functionResponse = await functionToCall(functionArgs.product);
+      let content = null;
 
-      let content;
-      try {
-        content = JSON.stringify(functionResponse?.[0] || null);
-      } catch (error) {
-        content = JSON.stringify(null);
+      switch (functionName) {
+        case "search_product":
+          const functionResponse = await functionToCall(functionArgs.product);
+          console.log(functionResponse);
+          try {
+            content = JSON.stringify(functionResponse?.[0] || null);
+          } catch (error) {
+            content = JSON.stringify(null);
+          }
+          break;
+        case "messenger_handover":
+          await functionToCall();
+          break;
+        default:
+          break;
       }
 
-      console.log(functionResponse);
       messages.push({
         tool_call_id: toolCall.id,
         role: "tool",
@@ -103,14 +133,14 @@ async function checkToolcalls(
         content,
       }); // extend conversation with function response
     }
-    const secondResponse = await respond(messages, isJSON);
+    const secondResponse = await respond(messages, isJSON, source);
     return secondResponse;
   }
 }
 
 export default async function makeConversation(
   messageHistory: ChatCompletionMessageParam[],
-  source: "WHATSAPP" | "MESSENGER"
+  source: SourcesProps
 ) {
   try {
     const isJSON = source === "WHATSAPP";
@@ -123,11 +153,12 @@ export default async function makeConversation(
     if (instruction) messages.push(instruction);
     messages.push(...messageHistory);
 
-    const firstResponse = await respond(messages, isJSON);
+    const firstResponse = await respond(messages, isJSON, source);
     const secondResponse = await checkToolcalls(
       firstResponse,
       messages,
-      isJSON
+      isJSON,
+      source
     );
     const response = secondResponse?.content || firstResponse?.content;
     if (!response) {

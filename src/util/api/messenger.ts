@@ -28,3 +28,9 @@ export const sendTextMessage = async (message: string, recipientID: string) => {
     }
   );
 };
+
+export const messengerHandoverToPage = async (PSID: string) => {
+  return await messengerAxios.post(
+    `${pageID}/pass_thread_control ?recipient={id:${PSID}}&target_app_id=${263902037430900}&access_token=${pageAccessToken}`
+  );
+};

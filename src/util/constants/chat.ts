@@ -98,3 +98,12 @@ When a response is generated, you should:
   }
   `,
 };
+
+export const MESSENGER_RESPONSE_INSTRUCTIONS: ChatCompletionMessageParam = {
+  role: "system",
+  content: `In the case where you cannot provide a response to the user, or the user asks to speak to a human agent follow this steps:
+  - Ask or confirm withs the user if they would like to be transferred to a human agent.
+  - Call the messenger_handover function.
+  - When you get a response from the call, inform the user that a human agent would be available shortly to speak with them.
+  `,
+};

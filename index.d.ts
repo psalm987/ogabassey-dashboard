@@ -44,9 +44,9 @@ type SessionProps = {
   source: "WHATSAPP";
   createdAt: Date;
   modifiedAt: Date;
-}
+};
 
-type SessionMainProps = Omit<SessionProps, "createdAt" | "modifiedAt">
+type SessionMainProps = Omit<SessionProps, "createdAt" | "modifiedAt">;
 
 //API
 type ApiResponse = {
@@ -117,4 +117,4 @@ type WebhookResponses = {
   sessionEntityTypes?: Partial<SessionEntity>[];
 };
 
-
+type SourcesProps = "WHATSAPP" | "MESSENGER";
