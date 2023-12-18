@@ -12,6 +12,7 @@ import {
   ChatCompletionTool,
 } from "openai/resources";
 import { messengerHandoverToPage, sendTextMessage } from "./messenger";
+import Message from "@db/models/message";
 
 const openai = new OpenAI();
 
@@ -119,6 +120,12 @@ async function checkToolcalls(
             "You're being transferred to a human agent.",
             sender
           );
+          await new Message({
+            source,
+            user: sender,
+            role: "assistant",
+            content: "You're being transferred to a human agent.",
+          }).save();
           functionResponse = await functionToCall(sender);
           break;
         default:
@@ -134,6 +141,13 @@ async function checkToolcalls(
       } catch (error) {
         content = JSON.stringify(null);
       }
+      await new Message({
+        source,
+        user: sender,
+        role: "tool",
+        name: functionName,
+        content,
+      }).save();
 
       messages.push({
         tool_call_id: toolCall.id,
