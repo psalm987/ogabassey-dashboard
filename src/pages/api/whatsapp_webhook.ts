@@ -177,7 +177,8 @@ export default async function handler(
           // GET  CONVERSATION RESPONSE
           const conversation = await makeConversation(
             messageHistory,
-            "WHATSAPP"
+            "WHATSAPP",
+            sender
           );
 
           // PERSIST RESPONSE MESSAGE

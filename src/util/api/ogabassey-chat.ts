@@ -95,7 +95,8 @@ async function checkToolcalls(
   response: ChatCompletionMessage,
   messages: ChatCompletionMessageParam[],
   isJSON: boolean,
-  source: SourcesProps
+  source: SourcesProps,
+  sender: string
 ) {
   const toolCalls = response.tool_calls;
   if (toolCalls) {
@@ -119,7 +120,7 @@ async function checkToolcalls(
           }
           break;
         case "messenger_handover":
-          await functionToCall();
+          await functionToCall(sender);
           break;
         default:
           break;
@@ -140,7 +141,8 @@ async function checkToolcalls(
 
 export default async function makeConversation(
   messageHistory: ChatCompletionMessageParam[],
-  source: SourcesProps
+  source: SourcesProps,
+  sender: string
 ) {
   try {
     const isJSON = source === "WHATSAPP";
@@ -158,7 +160,8 @@ export default async function makeConversation(
       firstResponse,
       messages,
       isJSON,
-      source
+      source,
+      sender
     );
     const response = secondResponse?.content || firstResponse?.content;
     if (!response) {

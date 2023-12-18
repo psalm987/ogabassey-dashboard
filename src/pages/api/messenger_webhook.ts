@@ -78,7 +78,8 @@ export default async function handler(
           // GET  CONVERSATION RESPONSE
           const conversation = await makeConversation(
             messageHistory,
-            "MESSENGER"
+            "MESSENGER",
+            sender
           );
 
           // PERSIST RESPONSE MESSAGE
