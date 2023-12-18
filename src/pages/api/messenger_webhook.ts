@@ -29,6 +29,7 @@ type WebhookData = {
     {
       id: string;
       messaging: WebhookMessage[];
+      hop_context: any[];
     }
   ];
 };
@@ -52,6 +53,7 @@ export default async function handler(
       case "POST":
         console.log(body);
         console.log(body?.entry?.[0]?.messaging);
+        console.log(body?.entry?.[0]?.hop_context);
         const sender = getSender(body);
         const senderMessage = getMessage(body);
 
