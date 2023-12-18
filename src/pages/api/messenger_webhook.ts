@@ -5,6 +5,7 @@ import makeConversation from "../../util/api/ogabassey-chat";
 
 import connectDb from "@db/config";
 import { sendTextMessage } from "src/util/api/messenger";
+import Message from "@db/models/message";
 
 connectDb();
 
@@ -52,9 +53,46 @@ export default async function handler(
         console.log(body);
         console.log(body?.entry?.[0]?.messaging);
         const sender = getSender(body);
-        const message = getMessage(body);
+        const senderMessage = getMessage(body);
 
-        await sendTextMessage(`Echo: ${message}`, sender);
+        if (sender && senderMessage) {
+          const saveUserMessage = new Message({
+            source: "MESSENGER",
+            user: sender,
+            role: "user",
+            content: senderMessage,
+          });
+          await saveUserMessage.save();
+
+          const messageHistory = await Message.find({
+            user: sender,
+            source: "MESSENGER",
+            createdAt: {
+              $gte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+            },
+          })
+            .select("-user -source -createdAt -updatedAt -tool_calls -__v -_id")
+            .sort("createdAt")
+            .limit(30);
+
+          // GET  CONVERSATION RESPONSE
+          const conversation = await makeConversation(
+            messageHistory,
+            "MESSENGER"
+          );
+
+          // PERSIST RESPONSE MESSAGE
+          const saveAssistantResponse = new Message({
+            source: "MESSENGER",
+            user: sender,
+            role: "assistant",
+            content: conversation,
+          });
+          await saveAssistantResponse.save();
+          console.log(conversation);
+
+          await sendTextMessage(conversation, sender);
+        }
 
         return res.status(200).send({ message: "Successful!" });
       case "GET":
