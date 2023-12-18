@@ -2,79 +2,24 @@
 import { addSession, findSession } from "@db/utils/session";
 import type { NextApiRequest, NextApiResponse } from "next";
 import makeConversation from "../../util/api/ogabassey-chat";
-import {
-  markMessageRead,
-  sendCustomMessage,
-  sendTextMessage,
-} from "../../util/api/whatsapp";
+
 import connectDb from "@db/config";
+import { sendTextMessage } from "src/util/api/messenger";
 
 connectDb();
 
 type WebhookMessage = {
-  from: string;
-  id: string;
-  timestamp: string;
-  type?:
-    | "audio"
-    | "button"
-    | "document"
-    | "text"
-    | "image"
-    | "interactive"
-    | "order"
-    | "sticker"
-    | "system"
-    | "unknown"
-    | "video";
-  text?: {
-    body: string;
-  };
-  system?: {
-    body: string;
-    identity: string;
-    new_wa_id: string;
-    wa_id: string;
-    type: string;
-    customer: string;
-  };
-};
-
-type WebhookContact = {
-  wa_id: string;
-  profile: {
-    name: string;
-  };
-};
-
-type WebhookError = {
-  code: number;
-  title: string;
-  message: string;
-  error_data: {
-    details: string;
-  };
-};
-
-type WebhookStatus = {
-  biz_opaque_callback_data: string;
-  conversation: {
+  sender: {
     id: string;
-    origin: {
-      type:
-        | "authentication"
-        | "marketing"
-        | "utility"
-        | "service"
-        | "referral_conversion";
-      expiration_timestamp: string;
-    };
   };
-  errors: WebhookError[];
-  id: string;
-  recipient_id: string;
-  status: "delivered" | "read" | "sent";
+  recipient: {
+    id: string;
+  };
   timestamp: string;
+  message?: {
+    mid: string;
+    text: string;
+  };
 };
 
 type WebhookData = {
@@ -82,49 +27,17 @@ type WebhookData = {
   entry: [
     {
       id: string;
-      messaging: any[];
-      // {
-      //   value: {
-      //     messaging_product: "messenger";
-      //     metadata: {
-      //       display_phone_number: string;
-      //       phone_number_id: string;
-      //     };
-      //     messages?: WebhookMessage[];
-      //     contacts?: WebhookContact[];
-      //     errors?: WebhookError[];
-      //     statuses?: WebhookStatus[];
-      //   };
-      //   field: "messages" | string;
-      // }
+      messaging: WebhookMessage[];
     }
   ];
 };
 
-const getSender = (change: {
-  value: {
-    messaging_product: "whatsapp";
-    metadata: {
-      display_phone_number: string;
-      phone_number_id: string;
-    };
-    messages?: WebhookMessage[];
-    contacts?: WebhookContact[];
-    errors?: WebhookError[];
-    statuses?: WebhookStatus[];
-  };
-  field: "messages" | string;
-}) => {
-  if (change?.value?.errors) {
-    throw new Error(JSON.stringify(change.value.errors));
-  } else if (change?.value?.messages) {
-    return change?.value?.messages?.[0]?.from;
-  } else if (change?.value?.statuses) {
-    // console.log(
-    //   "Statuses: ",
-    //   change?.value?.statuses.map((stat) => stat)
-    // );
-  }
+const getSender = (data: WebhookData) => {
+  return data?.entry?.[0]?.messaging?.[0]?.sender?.id;
+};
+
+const getMessage = (data: WebhookData) => {
+  return data?.entry?.[0]?.messaging?.[0]?.message?.text;
 };
 
 export default async function handler(
@@ -138,7 +51,12 @@ export default async function handler(
       case "POST":
         console.log(body);
         console.log(body?.entry?.[0]?.messaging);
-        return res.status(200);
+        const sender = getSender(body);
+        const message = getMessage(body);
+
+        await sendTextMessage(`Echo: ${message}`, sender);
+
+        return res.status(200).send({ message: "Successful!" });
       case "GET":
         if (
           req.query["hub.verify_token"] === process.env.VERIFY_TOKEN! &&

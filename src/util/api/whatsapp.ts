@@ -1,11 +1,11 @@
 import axios from "axios";
 
-const whatsappAPIversion = "v17.0";
+const APIversion = "v17.0";
 
 const whatsappSenderPhoneNumber = process.env.PHONE_NUMBER_ID!;
 
 const whatsappAxios = axios.create({
-  baseURL: `https://graph.facebook.com/${whatsappAPIversion}/`,
+  baseURL: `https://graph.facebook.com/${APIversion}/`,
   headers: {
     Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
     "Content-Type": "application/json",
