@@ -33,7 +33,7 @@ const MessagesSchema = new Schema<MessageProps>(
     tool_calls: { type: Schema.Types.Array, default: undefined },
     source: {
       type: String,
-      enum: ["WHATSAPP", "MESSENGER"],
+      enum: ["WHATSAPP", "MESSENGER", "INSTAGRAM"],
       required: true,
     },
   },
