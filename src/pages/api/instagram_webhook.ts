@@ -4,7 +4,7 @@ import makeConversation from "../../util/api/ogabassey-chat";
 
 import connectDb from "@db/config";
 import Message from "@db/models/message";
-import { sendTextMessage } from "src/util/api/instagram";
+import InstagramAPI, { sendTextMessage } from "src/util/api/instagram";
 
 connectDb();
 
@@ -74,6 +74,8 @@ export default async function handler(
             .select("-user -source -createdAt -updatedAt -tool_calls -__v -_id")
             .sort("createdAt")
             .limit(30);
+
+          // await InstagramAPI.messengerTakeControl(sender);
 
           const conversation = await makeConversation(
             messageHistory,

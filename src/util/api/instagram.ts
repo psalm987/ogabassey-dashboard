@@ -34,3 +34,12 @@ export const messengerHandoverToPage = async (IGSID: string) => {
     `${pageID}/pass_thread_control?recipient={id:${IGSID}}&target_app_id=${1217981644879628}&access_token=${pageAccessToken}`
   );
 };
+
+export const messengerTakeControl = async (IGSID: string) => {
+  return await messengerAxios.post(
+    `${pageID}/take_thread_control?recipient={id:${IGSID}}&access_token=${pageAccessToken}`
+  );
+};
+
+const InstagramAPI = { sendTextMessage, messengerHandoverToPage,messengerTakeControl };
+export default InstagramAPI;

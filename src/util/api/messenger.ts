@@ -34,3 +34,6 @@ export const messengerHandoverToPage = async (PSID: string) => {
     `${pageID}/pass_thread_control?recipient={id:${PSID}}&target_app_id=${263902037430900}&access_token=${pageAccessToken}`
   );
 };
+
+const MessengerAPI = { sendTextMessage, messengerHandoverToPage };
+export default MessengerAPI;

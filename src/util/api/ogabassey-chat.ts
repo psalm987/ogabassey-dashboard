@@ -12,10 +12,14 @@ import {
   ChatCompletionMessageParam,
   ChatCompletionTool,
 } from "openai/resources";
-import { messengerHandoverToPage, sendTextMessage } from "./messenger";
+import MessengerAPI from "./messenger";
 import Message from "@db/models/message";
+import InstagramAPI from "./instagram";
 
 const openai = new OpenAI();
+
+const TRANSFER_MESSAGE =
+  "You're being transferred to a human agent. Please hold on, someone will be with you shortly.";
 
 const getSourceResponseInstructions = (source: SourcesProps) => {
   switch (source) {
@@ -62,6 +66,27 @@ const messenger_tools: ChatCompletionTool[] = [
     },
   },
 ];
+const instagram_tools: ChatCompletionTool[] = [
+  {
+    type: "function",
+    function: {
+      name: "messenger_handover",
+      description: "Transfer conversation to a live agent.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+];
+
+const messengerHandoverToPage = (source: SourcesProps) => {
+  switch (source) {
+    case "INSTAGRAM":
+      return InstagramAPI.messengerHandoverToPage;
+    case "MESSENGER":
+      return MessengerAPI.messengerHandoverToPage;
+    default:
+      break;
+  }
+};
 
 const availableFunctions: {
   [key: string]: any;
@@ -82,6 +107,7 @@ async function respond(
 ) {
   const completionTools = [...tools];
   if (source === "MESSENGER") completionTools.push(...messenger_tools);
+  if (source === "INSTAGRAM") completionTools.push(...instagram_tools);
 
   const response = await openai.chat.completions.create({
     model: "gpt-3.5-turbo-1106",
@@ -124,17 +150,16 @@ async function checkToolcalls(
           functionResponse = await functionToCall(functionArgs.product);
           break;
         case "messenger_handover":
-          await sendTextMessage(
-            "You're being transferred to a human agent. Please hold on, someone will be with you shortly.",
-            sender
-          );
-          await new Message({
-            source,
-            user: sender,
-            role: "assistant",
-            content: "You're being transferred to a human agent.",
-          }).save();
-          functionResponse = await functionToCall(sender);
+          if (source === "MESSENGER") {
+            await MessengerAPI.sendTextMessage(TRANSFER_MESSAGE, sender);
+          }
+          if (source === "INSTAGRAM") {
+            await InstagramAPI.sendTextMessage(TRANSFER_MESSAGE, sender);
+          }
+          await functionToCall(source)(sender);
+          functionResponse = {
+            success: true,
+          };
           break;
         default:
           break;
