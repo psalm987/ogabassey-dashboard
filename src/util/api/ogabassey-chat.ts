@@ -182,9 +182,19 @@ export default async function zmakeConversation(
       CHATBOT_INSTRUCTIONS,
     ];
 
+    const filteredMessageHistory = messageHistory.filter(
+      (message: ChatCompletionMessageParam, index) =>
+        !(
+          // @ts-ignore
+          (message?.role === "tool" && !messageHistory?.[index - 1]?.tool_calls)
+        ) &&
+        // @ts-ignore
+        !(message?.tool_calls && messageHistory?.[index + 1]?.role !== "tool")
+    );
+
     const instruction = getSourceResponseInstructions(source);
     if (instruction) messages.push(instruction);
-    messages.push(...messageHistory);
+    messages.push(...filteredMessageHistory);
 
     const firstResponse = await respond(messages, isJSON, source);
     const secondResponse = await checkToolcalls(
