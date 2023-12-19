@@ -3,7 +3,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import makeConversation from "../../util/api/ogabassey-chat";
 
 import connectDb from "@db/config";
-import { sendTextMessage } from "src/util/api/messenger";
 import Message from "@db/models/message";
 
 connectDb();
@@ -50,47 +49,8 @@ export default async function handler(
 
     switch (req.method) {
       case "POST":
-        const sender = getSender(body);
-        const senderMessage = getMessage(body);
-
-        if (sender && senderMessage) {
-          const saveUserMessage = new Message({
-            source: "MESSENGER",
-            user: sender,
-            role: "user",
-            content: senderMessage,
-          });
-          await saveUserMessage.save();
-
-          const messageHistory = await Message.find({
-            user: sender,
-            source: "MESSENGER",
-            createdAt: {
-              $gte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-            },
-          })
-            .select("-user -source -createdAt -updatedAt -tool_calls -__v -_id")
-            .sort("createdAt")
-            .limit(30);
-
-          // GET  CONVERSATION RESPONSE
-          const conversation = await makeConversation(
-            messageHistory,
-            "MESSENGER",
-            sender
-          );
-
-          // PERSIST RESPONSE MESSAGE
-          const saveAssistantResponse = new Message({
-            source: "MESSENGER",
-            user: sender,
-            role: "assistant",
-            content: conversation,
-          });
-          await saveAssistantResponse.save();
-
-          await sendTextMessage(conversation, sender);
-        }
+        console.log(body);
+        console.log(body?.entry?.[0]);
 
         return res.status(200).send({ message: "Successful!" });
       case "GET":
