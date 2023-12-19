@@ -117,4 +117,4 @@ type WebhookResponses = {
   sessionEntityTypes?: Partial<SessionEntity>[];
 };
 
-type SourcesProps = "WHATSAPP" | "MESSENGER";
+type SourcesProps = "WHATSAPP" | "MESSENGER" | "INSTAGRAM";

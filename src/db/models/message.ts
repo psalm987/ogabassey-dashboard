@@ -8,7 +8,7 @@ type MessageProps = {
   user: string;
   role: "system" | "user" | "assistant" | "tool" | "function";
   content: string;
-  source: "WHATSAPP" | "MESSENGER";
+  source: SourcesProps;
   createdAt: string;
   updatedAt: string;
   tool_calls?: any[];

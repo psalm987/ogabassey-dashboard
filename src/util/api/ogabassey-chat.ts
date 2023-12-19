@@ -1,6 +1,7 @@
 import {
   CHATBOT_INSTRUCTIONS,
   FALLBACK_MESSAGES,
+  INSTAGRAM_RESPONSE_INSTRUCTIONS,
   MESSENGER_RESPONSE_INSTRUCTIONS,
   WHATSAPP_RESPONSE_INSTRUCTIONS,
 } from "./../constants/chat";
@@ -22,9 +23,10 @@ const getSourceResponseInstructions = (source: SourcesProps) => {
       return WHATSAPP_RESPONSE_INSTRUCTIONS;
     case "MESSENGER":
       return MESSENGER_RESPONSE_INSTRUCTIONS;
+    case "INSTAGRAM":
+      return INSTAGRAM_RESPONSE_INSTRUCTIONS;
     default:
       return undefined;
-      break;
   }
 };
 
@@ -168,7 +170,7 @@ async function checkToolcalls(
   }
 }
 
-export default async function makeConversation(
+export default async function zmakeConversation(
   messageHistory: ChatCompletionMessageParam[],
   source: SourcesProps,
   sender: string

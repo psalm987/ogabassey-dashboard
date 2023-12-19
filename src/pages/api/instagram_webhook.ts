@@ -4,6 +4,7 @@ import makeConversation from "../../util/api/ogabassey-chat";
 
 import connectDb from "@db/config";
 import Message from "@db/models/message";
+import { sendTextMessage } from "src/util/api/instagram";
 
 connectDb();
 
@@ -51,6 +52,44 @@ export default async function handler(
       case "POST":
         console.log(body);
         console.log(body?.entry?.[0]);
+        const source = "INSTAGRAM";
+        const sender = getSender(body);
+        const senderMessage = getMessage(body);
+
+        if (sender && senderMessage) {
+          await new Message({
+            source,
+            user: sender,
+            role: "user",
+            content: senderMessage,
+          }).save();
+
+          const messageHistory = await Message.find({
+            user: sender,
+            source,
+            createdAt: {
+              $gte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+            },
+          })
+            .select("-user -source -createdAt -updatedAt -tool_calls -__v -_id")
+            .sort("createdAt")
+            .limit(30);
+
+          const conversation = await makeConversation(
+            messageHistory,
+            source,
+            sender
+          );
+
+          await new Message({
+            source,
+            user: sender,
+            role: "assistant",
+            content: conversation,
+          }).save();
+
+          await sendTextMessage(conversation, sender);
+        }
 
         return res.status(200).send({ message: "Successful!" });
       case "GET":
