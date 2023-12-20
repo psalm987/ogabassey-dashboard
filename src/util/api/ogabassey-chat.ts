@@ -27,8 +27,8 @@ const getSourceResponseInstructions = (source: SourcesProps) => {
       return WHATSAPP_RESPONSE_INSTRUCTIONS;
     case "MESSENGER":
       return MESSENGER_RESPONSE_INSTRUCTIONS;
-    case "INSTAGRAM":
-      return INSTAGRAM_RESPONSE_INSTRUCTIONS;
+    // case "INSTAGRAM":
+    //   return INSTAGRAM_RESPONSE_INSTRUCTIONS;
     default:
       return undefined;
   }
@@ -79,8 +79,8 @@ const instagram_tools: ChatCompletionTool[] = [
 
 const messengerHandoverToPage = (source: SourcesProps) => {
   switch (source) {
-    case "INSTAGRAM":
-      return InstagramAPI.messengerHandoverToPage;
+    // case "INSTAGRAM":
+    //   return InstagramAPI.messengerHandoverToPage;
     case "MESSENGER":
       return MessengerAPI.messengerHandoverToPage;
     default:
@@ -107,7 +107,7 @@ async function respond(
 ) {
   const completionTools = [...tools];
   if (source === "MESSENGER") completionTools.push(...messenger_tools);
-  if (source === "INSTAGRAM") completionTools.push(...instagram_tools);
+  // if (source === "INSTAGRAM") completionTools.push(...instagram_tools);
 
   const response = await openai.chat.completions.create({
     model: "gpt-3.5-turbo-1106",
@@ -153,9 +153,9 @@ async function checkToolcalls(
           if (source === "MESSENGER") {
             await MessengerAPI.sendTextMessage(TRANSFER_MESSAGE, sender);
           }
-          if (source === "INSTAGRAM") {
-            await InstagramAPI.sendTextMessage(TRANSFER_MESSAGE, sender);
-          }
+          // if (source === "INSTAGRAM") {
+          //   await InstagramAPI.sendTextMessage(TRANSFER_MESSAGE, sender);
+          // }
           await functionToCall(source)(sender);
           functionResponse = {
             success: true,

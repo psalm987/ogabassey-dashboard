@@ -75,7 +75,7 @@ export default async function handler(
             .sort("createdAt")
             .limit(30);
 
-          // await InstagramAPI.messengerTakeControl(sender);
+          await InstagramAPI.messengerTakeControl(sender);
 
           const conversation = await makeConversation(
             messageHistory,
