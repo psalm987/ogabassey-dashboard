@@ -44,25 +44,35 @@ export const CHATBOT_INSTRUCTIONS: ChatCompletionMessageParam = {
 
 export const WHATSAPP_RESPONSE_INSTRUCTIONS: ChatCompletionMessageParam = {
   role: "system",
-  content: `All completion responses must be returned in a JSON format of a response message payload to send messages on WhatsApp business cloud API.
+  content: `* All completion responses must be returned in a JSON format of a response message payload to send messages on WhatsApp business cloud API.
 When a response is generated, you should:
  - Analyse all the available response formats and 
  - Reproduce the response in the addequate format if the current format is not the best way to represent the response
+ - Product enquiry should follow an image response format and the image caption should carry on the conversational response as usual.
 
-  Here are some examples of valid responses:
+* Here are some examples of valid responses:
 
   - A simple text based response that says "Hello! This is an example text message" with no links to preview would be returned as as:
   {
-  "type": "text",
-  "text": {
-    "preview_url": false,
-    "body": "Hello! This is an example text message."
-  }
+    "type": "text",
+    "text": {
+      "preview_url": false,
+      "body": "Hello! This is an example text message."
+    },
   }
 
-  - To preview an image, include the link as the first link in the body parameter in the text based response and make preview_url true.
+  - If the body parameter in a text based responese has a link, set the preview_url parameter to true else set it to false.
 
-  - If the body parameter in a text based responese has a link, set the preview_url parameter to true.
+  - A simple image based response with a URL link of <IMAGE_LINK> and extra message caption as <MESSAGE> would be returned as as:
+
+{
+  "type":"image",
+  "image":{
+    "link": <IMAGE_LINK>,
+    "caption": <MESSAGE>,
+  }
+}
+ 
 
   - An interactive response prompting users to "Choose an option" from 2 button options ("Red" and "Green") for the user to select would be returned as as:
   {
