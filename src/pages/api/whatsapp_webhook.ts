@@ -180,16 +180,6 @@ export default async function handler(
             sender
           );
 
-          // PERSIST RESPONSE MESSAGE
-          const assistantResponse = new Message({
-            source: "WHATSAPP",
-            user: sender,
-            role: "assistant",
-            content: conversation,
-          });
-
-          await assistantResponse.save();
-
           // const response = JSON.parse(conversation);
           console.log(conversation);
 
@@ -197,13 +187,20 @@ export default async function handler(
           try {
             response = JSON.parse(conversation);
           } catch (error: any) {
-            console.error(error);
             if (error?.message?.includes?.("Unexpected non-whitespace")) {
               response = JSON.parse(
                 conversation?.slice(0, conversation?.length / 2)
               );
             }
           }
+
+          // PERSIST RESPONSE MESSAGE
+          await new Message({
+            source: "WHATSAPP",
+            user: sender,
+            role: "assistant",
+            content: JSON.stringify(response),
+          }).save();
 
           // SEND RESPONSE
           await sendCustomMessage(
