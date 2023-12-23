@@ -15,6 +15,7 @@ import {
 import MessengerAPI from "./messenger";
 import Message from "@db/models/message";
 import InstagramAPI from "./instagram";
+import { searchProducts } from "@db/utils/products";
 
 const openai = new OpenAI();
 
@@ -91,7 +92,7 @@ const messengerHandoverToPage = (source: SourcesProps) => {
 const availableFunctions: {
   [key: string]: any;
 } = {
-  search_product: searchProduct,
+  search_product: searchProducts,
   messenger_handover: messengerHandoverToPage,
 };
 
@@ -147,7 +148,9 @@ async function checkToolcalls(
 
       switch (functionName) {
         case "search_product":
-          functionResponse = await functionToCall(functionArgs.product);
+          functionResponse = await functionToCall({
+            query: functionArgs.product,
+          });
           break;
         case "messenger_handover":
           if (source === "MESSENGER") {
