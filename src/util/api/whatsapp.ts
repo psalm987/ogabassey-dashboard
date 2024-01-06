@@ -47,13 +47,22 @@ export const sendCustomMessage = async (message: any, to: string) => {
   });
 };
 
-export const markMessageRead = async (
-  message_id: string,
-  sender_id: string
-) => {
-  return await whatsappAxios.post(`${whatsappSenderPhoneNumber}/messages`, {
-    messaging_product: "whatsapp",
-    status: "read",
-    message_id,
-  });
+export const markMessageRead = async (message_id: string) => {
+  try {
+    return await whatsappAxios.post(`${whatsappSenderPhoneNumber}/messages`, {
+      messaging_product: "whatsapp",
+      status: "read",
+      message_id,
+    });
+  } catch (error: any) {
+    if (error.response) {
+      console.error(error.response.data);
+      console.error(error.response.status);
+      // console.error(error.response.headers);
+    } else if (error.request) {
+      console.error(error.request);
+    } else {
+      console.error("Error", error.message);
+    }
+  }
 };

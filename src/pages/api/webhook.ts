@@ -142,7 +142,7 @@ export default async function handler(
         if (sender) {
           // MARK MESSAGE AS READ
           const messageId = change?.value?.messages?.[0]?.id;
-          messageId && (await markMessageRead(messageId, sender));
+          messageId && (await markMessageRead(messageId));
           const senderMessage = change.value.messages?.[0]?.text?.body;
           let session = await findSession({ userId: sender });
 

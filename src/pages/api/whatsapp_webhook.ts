@@ -144,13 +144,19 @@ export default async function handler(
           return res.status(400);
         }
 
+        console.log(body, change, "BODY!!!!\n\n\n\n\n\n");
+
         // RETRIEVE SENDER INFO
         const sender = getSender(change);
+
+        console.log("sender gotten");
 
         if (sender) {
           // MARK MESSAGE AS READ
           const messageId = change?.value?.messages?.[0]?.id;
-          messageId && (await markMessageRead(messageId, sender));
+          console.log("message about to mark", messageId);
+          messageId && (await markMessageRead(messageId));
+          console.log("message marked", messageId);
           const senderMessage = change.value.messages?.[0]?.text?.body;
 
           const userMessage = new Message({
@@ -238,7 +244,7 @@ export default async function handler(
     if (error.response) {
       console.error(error.response.data);
       console.error(error.response.status);
-      console.error(error.response.headers);
+      // console.error(error.response.headers);
     } else if (error.request) {
       console.error(error.request);
     } else {

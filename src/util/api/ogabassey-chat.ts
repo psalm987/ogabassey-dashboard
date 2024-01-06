@@ -198,7 +198,7 @@ async function checkToolcalls(
   }
 }
 
-export default async function zmakeConversation(
+export default async function makeConversation(
   messageHistory: ChatCompletionMessageParam[],
   source: SourcesProps,
   sender: string
