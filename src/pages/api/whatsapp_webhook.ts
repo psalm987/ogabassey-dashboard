@@ -192,7 +192,7 @@ export default async function handler(
 
           let response;
           try {
-            response = JSON.parse(formatJSON(conversation));
+            response = JSON.parse(formatJSON(conversation).at(-1)!);
           } catch (error: any) {
             console.warn("Error while parsing the response");
           }

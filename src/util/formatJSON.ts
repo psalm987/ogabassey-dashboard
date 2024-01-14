@@ -1,4 +1,5 @@
-const formatJSON = (input: string) => {
+const formatJSON = (input: string): string[] => {
+  let resultList: string[] = [];
   let result = "";
   const bracket_stack: string[] = [];
   const bracket_matcher: Record<string, string> = {
@@ -22,12 +23,14 @@ const formatJSON = (input: string) => {
       bracket_stack.pop();
       if (!bracket_stack.length) {
         result += letter;
-        break;
+        resultList.push(result.trim());
+        result = "";
+        continue;
       }
     }
     result += letter;
   }
-  return result.trim();
+  return resultList;
 };
 
 export default formatJSON;
