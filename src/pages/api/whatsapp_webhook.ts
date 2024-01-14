@@ -193,10 +193,14 @@ export default async function handler(
           try {
             response = JSON.parse(conversation);
           } catch (error: any) {
+            console.warn("Error while parsing the response");
             if (error?.message?.includes?.("Unexpected non-whitespace")) {
+              console.warn("Unexpected Whitespace");
               response = JSON.parse(
                 conversation?.slice(0, conversation?.length / 2)
               );
+            } else {
+              console.warn(error?.message?.split(0, 20));
             }
           }
 
@@ -205,13 +209,18 @@ export default async function handler(
             source: "WHATSAPP",
             user: sender,
             role: "assistant",
-            content: JSON.stringify(response),
+            content: conversation,
           }).save();
 
           // SEND RESPONSE
           await sendCustomMessage(
             {
-              ...response,
+              ...(response || {
+                type: "text",
+                text: {
+                  body: "There was an error processing your response, please check back later.",
+                },
+              }),
               context: change?.value?.messages?.[0]?.id && {
                 message_id: change?.value?.messages?.[0]?.id,
               },

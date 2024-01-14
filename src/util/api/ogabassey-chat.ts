@@ -238,14 +238,15 @@ export default async function makeConversation(
     }
     return response;
   } catch (error: any) {
+    console.warn("Error while retrieving from the cahtbot... ");
     if (error.response) {
-      console.error(error.response.data);
-      console.error(error.response.status);
+      console.warn(error.response.data);
+      console.warn(error.response.status);
       // console.error(error.response.headers);
     } else if (error.request) {
-      console.error(error.request);
+      console.warn(error.request);
     } else {
-      console.error("Error", error.message);
+      console.warn("Error", error.message);
     }
     const randomResponse = getRandomFallbackMessage();
     return isJSON
