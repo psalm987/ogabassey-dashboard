@@ -203,8 +203,8 @@ export default async function makeConversation(
   source: SourcesProps,
   sender: string
 ) {
+  const isJSON = source === "WHATSAPP";
   try {
-    const isJSON = source === "WHATSAPP";
     const messages: ChatCompletionMessageParam[] = [
       // @ts-ignore
       CHATBOT_INSTRUCTIONS,
@@ -247,6 +247,15 @@ export default async function makeConversation(
     } else {
       console.error("Error", error.message);
     }
-    return getRandomFallbackMessage();
+    const randomResponse = getRandomFallbackMessage();
+    return isJSON
+      ? `{
+      "type": "text",
+      "text": {
+        "preview_url": false,
+        "body": "${randomResponse}"
+      },
+    }`
+      : randomResponse;
   }
 }

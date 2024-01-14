@@ -55,14 +55,14 @@ export const markMessageRead = async (message_id: string) => {
       message_id,
     });
   } catch (error: any) {
-    if (error.response) {
-      console.error(error.response.data);
-      console.error(error.response.status);
-      // console.error(error.response.headers);
-    } else if (error.request) {
-      console.error(error.request);
-    } else {
-      console.error("Error", error.message);
-    }
+    // if (error.response) {
+    //   console.error(error.response.data);
+    //   console.error(error.response.status);
+    //   // console.error(error.response.headers);
+    // } else if (error.request) {
+    //   console.error(error.request);
+    // } else {
+    //   console.error("Error", error.message);
+    // }
   }
 };
