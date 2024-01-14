@@ -212,6 +212,7 @@ export default async function makeConversation(
 
     const filteredMessageHistory = messageHistory.filter(
       (message: ChatCompletionMessageParam, index) =>
+        message?.content &&
         !(
           // @ts-ignore
           (message?.role === "tool" && !messageHistory?.[index - 1]?.tool_calls)
