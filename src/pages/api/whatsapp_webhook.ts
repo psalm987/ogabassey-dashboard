@@ -8,6 +8,7 @@ import {
 } from "../../util/api/whatsapp";
 import Message from "@db/models/message";
 import connectDb from "@db/config";
+import formatJSON from "src/util/formatJSON";
 
 connectDb();
 
@@ -194,14 +195,9 @@ export default async function handler(
             response = JSON.parse(conversation);
           } catch (error: any) {
             console.warn("Error while parsing the response");
-            if (error?.message?.includes?.("Unexpected non-whitespace")) {
-              console.warn("Unexpected Whitespace");
-              response = JSON.parse(
-                conversation?.slice(0, conversation?.length / 2)
-              );
-            } else {
-              console.warn(error?.message?.split(0, 20));
-            }
+            const formattedJSONResponse =
+              formatJSON(conversation).pop() || "null";
+            response = JSON.parse(formattedJSONResponse);
           }
 
           // PERSIST RESPONSE MESSAGE
