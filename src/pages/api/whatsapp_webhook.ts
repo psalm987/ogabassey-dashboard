@@ -192,12 +192,17 @@ export default async function handler(
 
           let response;
           try {
-            response = JSON.parse(conversation);
+            response = JSON.parse(formatJSON(conversation).at(-1)!);
           } catch (error: any) {
             console.warn("Error while parsing the response");
-            const formattedJSONResponse =
-              formatJSON(conversation).pop() || "null";
-            response = JSON.parse(formattedJSONResponse);
+            if (error?.message?.includes?.("Unexpected non-whitespace")) {
+              console.warn("Unexpected Whitespace");
+              response = JSON.parse(
+                conversation?.slice(0, conversation?.length / 2)
+              );
+            } else {
+              console.warn(error?.message?.split(0, 20));
+            }
           }
 
           // PERSIST RESPONSE MESSAGE
