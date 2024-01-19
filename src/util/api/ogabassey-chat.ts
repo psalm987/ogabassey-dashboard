@@ -96,9 +96,18 @@ const availableFunctions: {
   messenger_handover: messengerHandoverToPage,
 };
 
-function getRandomFallbackMessage() {
+function getRandomFallbackMessage(isJSON: boolean): string {
   const randomIndex = Math.floor(Math.random() * FALLBACK_MESSAGES.length);
-  return FALLBACK_MESSAGES[randomIndex];
+  const message = FALLBACK_MESSAGES[randomIndex];
+  return isJSON
+    ? `{
+        "type": "text",
+        "text": {
+          "preview_url": false,
+          "body": "${message}",
+        },
+      }`
+    : message;
 }
 
 async function respond(
@@ -202,7 +211,11 @@ export default async function makeConversation(
   messageHistory: ChatCompletionMessageParam[],
   source: SourcesProps,
   sender: string
+<<<<<<< Updated upstream
 ) {
+=======
+): Promise<string> {
+>>>>>>> Stashed changes
   const isJSON = source === "WHATSAPP";
   try {
     const messages: ChatCompletionMessageParam[] = [
@@ -249,6 +262,7 @@ export default async function makeConversation(
     } else {
       console.warn("Error", error.message);
     }
+<<<<<<< Updated upstream
     const randomResponse = getRandomFallbackMessage();
     return isJSON
       ? `{
@@ -259,5 +273,8 @@ export default async function makeConversation(
       },
     }`
       : randomResponse;
+=======
+    return getRandomFallbackMessage(isJSON);
+>>>>>>> Stashed changes
   }
 }

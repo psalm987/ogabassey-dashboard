@@ -188,13 +188,17 @@ export default async function handler(
           );
 
           // const response = JSON.parse(conversation);
-          console.log(conversation);
+          console.log("CONVERSATION... ", conversation);
 
           let response;
           try {
             response = JSON.parse(formatJSON(conversation).at(-1)!);
           } catch (error: any) {
+<<<<<<< Updated upstream
             console.warn("Error while parsing the response");
+=======
+            console.warn(`Error parsing the conversation ${error}`);
+>>>>>>> Stashed changes
             if (error?.message?.includes?.("Unexpected non-whitespace")) {
               console.warn("Unexpected Whitespace");
               response = JSON.parse(
@@ -213,9 +217,11 @@ export default async function handler(
             content: conversation,
           }).save();
 
+          console.log("ABOUT TO SEND MESSAGE...", response);
           // SEND RESPONSE
           await sendCustomMessage(
             {
+<<<<<<< Updated upstream
               ...(response || {
                 type: "text",
                 text: {
@@ -224,10 +230,18 @@ export default async function handler(
               }),
               context: change?.value?.messages?.[0]?.id && {
                 message_id: change?.value?.messages?.[0]?.id,
+=======
+              ...response,
+              context: messageId && {
+                message_id: messageId,
+>>>>>>> Stashed changes
               },
             },
             sender
           );
+
+          // await sendTextMessage(conversation, sender);
+          console.log("SENT MESSAGE...");
 
           return res.status(200).json({
             message: "Message delivered successfully!",
