@@ -48,9 +48,7 @@ export const WHATSAPP_RESPONSE_INSTRUCTIONS: ChatCompletionMessageParam = {
 When a response is generated, you should:
  - Analyse all the available example response formats and 
  - Reproduce the response in the addequate format if the current format is not the best way to represent the response.
- - Confirm that the response is a valid JSON response, not a duplicate invalid response.
- - If the response is a duplicate, remove the duplicate so that the response is valid.
- - Product enquiry should follow an image response format and the image caption should carry on the conversational response as usual not just only the name of the product.
+- Product enquiry should follow an image response format and the image caption should carry on the conversational response as usual not just only the name of the product.
 
 * Here are some examples of valid responses:
 

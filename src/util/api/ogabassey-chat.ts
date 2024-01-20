@@ -211,11 +211,7 @@ export default async function makeConversation(
   messageHistory: ChatCompletionMessageParam[],
   source: SourcesProps,
   sender: string
-<<<<<<< Updated upstream
-) {
-=======
 ): Promise<string> {
->>>>>>> Stashed changes
   const isJSON = source === "WHATSAPP";
   try {
     const messages: ChatCompletionMessageParam[] = [
@@ -262,19 +258,6 @@ export default async function makeConversation(
     } else {
       console.warn("Error", error.message);
     }
-<<<<<<< Updated upstream
-    const randomResponse = getRandomFallbackMessage();
-    return isJSON
-      ? `{
-      "type": "text",
-      "text": {
-        "preview_url": false,
-        "body": "${randomResponse}"
-      },
-    }`
-      : randomResponse;
-=======
     return getRandomFallbackMessage(isJSON);
->>>>>>> Stashed changes
   }
 }
