@@ -4,6 +4,7 @@ import {
   INSTAGRAM_RESPONSE_INSTRUCTIONS,
   MESSENGER_RESPONSE_INSTRUCTIONS,
   WHATSAPP_RESPONSE_INSTRUCTIONS,
+  WHATSAPP_RESPONSE_INSTRUCTIONS_TEXT,
 } from "./../constants/chat";
 import OpenAI from "openai";
 import searchProduct from "./product";
@@ -25,7 +26,7 @@ const TRANSFER_MESSAGE =
 const getSourceResponseInstructions = (source: SourcesProps) => {
   switch (source) {
     case "WHATSAPP":
-      return WHATSAPP_RESPONSE_INSTRUCTIONS;
+      return WHATSAPP_RESPONSE_INSTRUCTIONS_TEXT;
     case "MESSENGER":
       return MESSENGER_RESPONSE_INSTRUCTIONS;
     // case "INSTAGRAM":
@@ -212,7 +213,8 @@ export default async function makeConversation(
   source: SourcesProps,
   sender: string
 ): Promise<string> {
-  const isJSON = source === "WHATSAPP";
+  const isJSON = false;
+  // source === "WHATSAPP";
   try {
     const messages: ChatCompletionMessageParam[] = [
       // @ts-ignore
@@ -248,7 +250,7 @@ export default async function makeConversation(
     }
     return response;
   } catch (error: any) {
-    console.warn("Error while retrieving from the cahtbot... ");
+    console.warn("Error while retrieving from the chatbot... ");
     if (error.response) {
       console.warn(error.response.data);
       console.warn(error.response.status);

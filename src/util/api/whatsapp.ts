@@ -24,14 +24,21 @@ export const registerToCloudAPI = async (pin: string) => {
   });
 };
 
-export const sendTextMessage = async (message: string, to: string) => {
+export const sendTextMessage = async (
+  message: string,
+  to: string,
+  context?: {
+    message_id: string;
+  }
+) => {
   return await whatsappAxios.post(`${whatsappSenderPhoneNumber}/messages`, {
     messaging_product: "whatsapp",
     recipient_type: "individual",
     to,
     type: "text",
+    context,
     text: {
-      preview_url: false,
+      preview_url: true,
       body: message,
     },
   });

@@ -126,3 +126,8 @@ export const INSTAGRAM_RESPONSE_INSTRUCTIONS: ChatCompletionMessageParam = {
   - Call the messenger_handover function.
   `,
 };
+
+export const WHATSAPP_RESPONSE_INSTRUCTIONS_TEXT: ChatCompletionMessageParam = {
+  role: "system",
+  content: ``,
+};
