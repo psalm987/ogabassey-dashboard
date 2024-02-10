@@ -190,20 +190,20 @@ export default async function handler(
           // const response = JSON.parse(conversation);
           console.log("CONVERSATION... ", conversation);
 
-          let response;
-          try {
-            response = JSON.parse(formatJSON(conversation).at(-1)!);
-          } catch (error: any) {
-            console.warn(`Error parsing the conversation ${error}`);
-            if (error?.message?.includes?.("Unexpected non-whitespace")) {
-              console.warn("Unexpected Whitespace");
-              response = JSON.parse(
-                conversation?.slice(0, conversation?.length / 2)
-              );
-            } else {
-              console.warn(error?.message?.split(0, 20));
-            }
-          }
+          // let response;
+          // try {
+          //   response = JSON.parse(formatJSON(conversation).at(-1)!);
+          // } catch (error: any) {
+          //   console.warn(`Error parsing the conversation ${error}`);
+          //   if (error?.message?.includes?.("Unexpected non-whitespace")) {
+          //     console.warn("Unexpected Whitespace");
+          //     response = JSON.parse(
+          //       conversation?.slice(0, conversation?.length / 2)
+          //     );
+          //   } else {
+          //     console.warn(error?.message?.split(0, 20));
+          //   }
+          // }
 
           // PERSIST RESPONSE MESSAGE
           await new Message({
@@ -213,7 +213,7 @@ export default async function handler(
             content: conversation,
           }).save();
 
-          console.log("ABOUT TO SEND MESSAGE...", response);
+          console.log("ABOUT TO SEND MESSAGE...", conversation);
           // SEND RESPONSE
           // await sendCustomMessage(
           //   {
@@ -238,7 +238,7 @@ export default async function handler(
 
           return res.status(200).json({
             message: "Message delivered successfully!",
-            conversation: response,
+            conversation: conversation,
             sender,
           });
         }

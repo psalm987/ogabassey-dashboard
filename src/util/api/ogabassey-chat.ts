@@ -229,7 +229,7 @@ export default async function makeConversation(
           (message?.role === "tool" && !messageHistory?.[index - 1]?.tool_calls)
         ) &&
         // @ts-ignore
-        !(message?.tool_calls && messageHistory?.[index + 1]?.role !== "tool")
+        !(message?.tool_calls && !messageHistory?.[index + 1]?.role !== "tool")
     );
 
     const instruction = getSourceResponseInstructions(source);
